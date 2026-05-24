@@ -563,7 +563,8 @@ Docker/컨테이너 기반 CI/CD를 제대로 학습하기 위해, **별도 저�
 - 파일: 신규 `UsageLog`, `MainFrame`(record + 카운트 표시), 신규 `UsageLogTest`.
 
 ### 9.5 항목 편집 UI (배치 5 · 브랜치 `feature/item-editor`)
-- 헤더 우측에 **`✎ 항목 편집`** 버튼 → **모달 다이얼로그**(`ProgramEditorDialog`)에서 버튼 항목을 **추가/삭제/위·아래 순서변경**.
+- 헤더 우측에 **`항목 편집`** 버튼 → **모달 다이얼로그**(`ProgramEditorDialog`)에서 버튼 항목을 **추가/삭제/위·아래 순서변경**.
+  - ※ 처음엔 `✎ 항목 편집`로 넣었으나 맑은 고딕에 `✎` 글리프가 없어 두부(□)로 깨져 제거(커밋 `ecec09a`). 아이콘 깨짐 문제는 §9.7에서 일반적으로 해결.
   - 맨 끝 **`사용자 지정` 항목은 편집 대상에서 제외**하고 항상 끝에 고정(우측 입력칸 복사 버튼이라 의미가 다름).
   - `JList` + `DefaultListModel`, 사이드 버튼(＋추가 / －삭제 / ▲위로 / ▼아래로) + 하단 저장/취소.
 - 저장 시 **`config.properties`에 평문(UTF-8)으로 기록**(`AppConfig.save`) 후, **버튼 그리드만 다시 그려** 즉시 반영(`reloadPrograms` — 미리보기·상태바·입력칸은 유지).
@@ -589,5 +590,8 @@ Docker/컨테이너 기반 CI/CD를 제대로 학습하기 위해, **별도 저�
 - **깨지지 않는 아이콘**: `UiConstants.icon(glyph, text)` — 폰트(`맑은 고딕`)가 `canDisplayUpTo`로 **표시 가능한 글리프만** 라벨에 붙이고, 불가하면 생략 → 환경에 상관없이 두부(□) 깨짐 원천 차단. 적용: `ⓘ 정보`, `≡ 항목 편집`, 사용자 지정 `▶`, 업데이트 `↻`, GitHub `↗`, 다운로드 `↓`, 편집창 `＋ － ▲ ▼ ✓ ✕`. (배치 5의 `✎`가 글리프 부재로 깨지던 문제를 일반화해 해결.)
 - 파일: 신규 `UiFactory`, `RoundedBorder` / 수정 `MainFrame`·`AboutDialog`·`ProgramEditorDialog`·`UiConstants`.
 
-→ 다음: v1.3 배치 전체를 묶어 태그 `v1.3.0`으로 릴리스(빌드는 `1.3.0`으로 이미 상향).
+### 9.8 v1.3.0 릴리스 + 문서
+- **릴리스 완료**: About(PR #13) → 디자인 개편(PR #14)을 각각 별도 PR로 `v2`에 머지한 뒤, 태그 **`v1.3.0`** 푸시 → GitHub Actions(`release.yml`)가 windows 러너에서 `jpackageImage` 빌드 → **`EntranceHelper.zip`(약 26 MB)** 를 Releases에 등록(자산 state=uploaded, 1MB 가드 통과).
+- **태그 주석**: 사용자 요청으로 태그 메시지에 배치 1~6 + 디자인 개편 요약을 기입(force-push로 갱신, 재실행도 success). 릴리스 페이지 본문은 `generate_release_notes`로 자동 생성되는 PR 목록 유지(태그 메시지는 본문에 미반영 — 필요 시 `release.yml`에서 태그 메시지를 본문으로 연결 가능).
+- **문서**: 사용자용 변경점을 `README.md`에 **`v3` 섹션**으로 정리(설치/사용 관점, 구현 용어 제외 · 브랜치 `docs/readme-v3`).
 
