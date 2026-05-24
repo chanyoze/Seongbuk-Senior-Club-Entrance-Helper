@@ -43,7 +43,7 @@ Seongbuk-Senior-Club-Entrance-Helper-2/
 | 2 | 테스트 (JUnit) | [tests.md](tests.md) | ✅ 완료 |
 | 3 | CI (GitHub Actions) | [ci.md](ci.md) | ✅ 완료 (PR에서 첫 실행 확인) |
 | 4 | CD (jpackage → Releases) | [cd.md](cd.md) | ✅ 완료 (v1.1.0 발행, EntranceHelper.zip 25.9MB) |
-| 5 | 배포 페이지 (GitHub Pages) | [pages.md](pages.md) | 🔄 페이지 작성 (Pages 활성화 대기) |
+| 5 | 배포 페이지 (GitHub Pages) | [pages.md](pages.md) | ✅ 완료 (게시·다운로드·실행 확인) |
 | — | 코드 리팩토링 (선행 작업) | [refactoring.md](refactoring.md) | ✅ 완료 |
 
 ## 참고
