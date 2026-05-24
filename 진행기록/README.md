@@ -15,7 +15,8 @@ Seongbuk-Senior-Club-Entrance-Helper-2/
     ├── setup.md               환경 구축 (Git 연결·JDK 설치·로컬 빌드 검증)
     ├── gradle.md              Gradle 마이그레이션 (빌드 표준화)
     ├── tests.md               테스트 (JUnit 5 단위 테스트)
-    └── (예정) ci.md / cd.md / pages.md ...
+    ├── ci.md                  CI (GitHub Actions 자동 빌드·테스트)
+    └── (예정) cd.md / pages.md ...
 ```
 
 ## 역할 구분
@@ -39,7 +40,7 @@ Seongbuk-Senior-Club-Entrance-Helper-2/
 | 0 | 환경 구축 | [setup.md](setup.md) | ✅ 완료 |
 | 1 | 빌드 표준화 (Gradle) | [gradle.md](gradle.md) | ✅ 완료 |
 | 2 | 테스트 (JUnit) | [tests.md](tests.md) | ✅ 완료 |
-| 3 | CI (GitHub Actions) | (예정) ci.md | ⬜ |
+| 3 | CI (GitHub Actions) | [ci.md](ci.md) | ✅ 완료 (PR에서 첫 실행 확인) |
 | 4 | CD (jpackage → Releases) | (예정) cd.md | ⬜ |
 | 5 | 배포 페이지 (GitHub Pages) | (예정) pages.md | ⬜ |
 | — | 코드 리팩토링 (선행 작업) | [refactoring.md](refactoring.md) | ✅ 완료 |

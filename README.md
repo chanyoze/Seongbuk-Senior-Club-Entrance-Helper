@@ -1,4 +1,7 @@
 # Seongbuk-Senior-Club-Entrance-Helper
+
+[![CI](https://github.com/chanyoze/Seongbuk-Senior-Club-Entrance-Helper/actions/workflows/ci.yml/badge.svg)](https://github.com/chanyoze/Seongbuk-Senior-Club-Entrance-Helper/actions/workflows/ci.yml)
+
 복지관 출입도우미 헬퍼
 
 사용 언어: JAVA
