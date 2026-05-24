@@ -10,9 +10,11 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
+import java.io.IOException;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -33,8 +35,9 @@ import java.util.List;
  */
 final class MainFrame extends JFrame {
 
-    private final AppConfig config;
+    private AppConfig config;
     private final UsageLog usageLog = new UsageLog();
+    private JPanel centerPanel;
     private AutoPasteService autoPaste;
     private JTextArea previewArea;
     private JTextField customField;
@@ -73,8 +76,6 @@ final class MainFrame extends JFrame {
 
     /** 숫자키 1~9로 앞 9개 항목 선택(복사+무장). 단, 입력칸/미리보기에 타이핑 중이면 무시해 숫자 입력을 보존한다. */
     private void setupHotkeys() {
-        List<String> names = config.programNames();
-        int gridCount = Math.max(0, names.size() - 1);
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(e -> {
             if (e.getID() != KeyEvent.KEY_PRESSED) {
                 return false;
@@ -83,6 +84,8 @@ final class MainFrame extends JFrame {
             if (focus == customField) {
                 return false;   // 사용자 지정 입력칸에 타이핑 중일 때만 숫자 양보 (미리보기 등에선 단축키 유지)
             }
+            List<String> names = config.programNames();   // 편집으로 바뀔 수 있으니 매번 현재 설정을 읽음
+            int gridCount = Math.max(0, names.size() - 1);
             int idx = e.getKeyCode() - KeyEvent.VK_1;   // VK_1..VK_9 → 0..8
             if (idx >= 0 && idx < 9 && idx < gridCount) {
                 copyAndArm(names.get(idx));
@@ -93,35 +96,80 @@ final class MainFrame extends JFrame {
     }
 
     private JComponent buildHeader() {
-        JPanel header = new JPanel();
-        header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
+        JPanel header = new JPanel(new BorderLayout());
         header.setBackground(UiConstants.ACCENT);
         header.setBorder(new EmptyBorder(UiConstants.PAD, UiConstants.PAD + 4, UiConstants.PAD, UiConstants.PAD));
 
+        JPanel titles = new JPanel();
+        titles.setOpaque(false);
+        titles.setLayout(new BoxLayout(titles, BoxLayout.Y_AXIS));
         JLabel title = new JLabel(UiConstants.HEADER_TEXT);
         title.setFont(UiConstants.TITLE_FONT);
         title.setForeground(Color.WHITE);
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
-
         JLabel subtitle = new JLabel(UiConstants.HEADER_SUBTITLE);
         subtitle.setFont(UiConstants.SUBTITLE_FONT);
         subtitle.setForeground(UiConstants.HEADER_SUBTITLE_FG);
         subtitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+        titles.add(title);
+        titles.add(Box.createVerticalStrut(4));
+        titles.add(subtitle);
 
-        header.add(title);
-        header.add(Box.createVerticalStrut(4));
-        header.add(subtitle);
+        JButton edit = new JButton("항목 편집");
+        edit.setFont(UiConstants.BTN_FONT);
+        edit.setForeground(Color.WHITE);
+        edit.setBackground(UiConstants.ACCENT_DARK);
+        edit.setOpaque(true);
+        edit.setFocusPainted(false);
+        edit.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        edit.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(UiConstants.ACCENT_DARK),
+                new EmptyBorder(8, 14, 8, 14)));
+        edit.addActionListener(e -> openEditor());
+        JPanel eastWrap = new JPanel(new BorderLayout());
+        eastWrap.setOpaque(false);
+        eastWrap.add(edit, BorderLayout.NORTH);
+
+        header.add(titles, BorderLayout.WEST);
+        header.add(eastWrap, BorderLayout.EAST);
         return header;
     }
 
-    private JComponent buildCenter() {
-        JPanel center = new JPanel(new BorderLayout(UiConstants.GAP, UiConstants.GAP));
-        center.setBackground(UiConstants.BG);
-        center.setBorder(new EmptyBorder(UiConstants.PAD, UiConstants.PAD, UiConstants.PAD, UiConstants.PAD));
+    private void openEditor() {
+        ProgramEditorDialog dlg = new ProgramEditorDialog(this, config.programNames());
+        dlg.setVisible(true);
+        if (dlg.isSaved()) {
+            try {
+                AppConfig.save(dlg.result());
+                reloadPrograms();
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(this, "저장에 실패했습니다: " + ex.getMessage(),
+                        "오류", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
 
-        center.add(buildButtonGrid(), BorderLayout.CENTER);
-        center.add(buildPreview(), BorderLayout.EAST);
-        return center;
+    /** 편집 후: 설정을 다시 읽어 버튼 그리드만 새로 그린다(미리보기·상태바·입력칸은 유지). */
+    private void reloadPrograms() {
+        config = AppConfig.load();
+        BorderLayout bl = (BorderLayout) centerPanel.getLayout();
+        Component oldGrid = bl.getLayoutComponent(BorderLayout.CENTER);
+        if (oldGrid != null) {
+            centerPanel.remove(oldGrid);
+        }
+        centerPanel.add(buildButtonGrid(), BorderLayout.CENTER);
+        centerPanel.revalidate();
+        centerPanel.repaint();
+    }
+
+    private JComponent buildCenter() {
+        centerPanel = new JPanel(new BorderLayout(UiConstants.GAP, UiConstants.GAP));
+        centerPanel.setBackground(UiConstants.BG);
+        centerPanel.setBorder(new EmptyBorder(UiConstants.PAD, UiConstants.PAD, UiConstants.PAD, UiConstants.PAD));
+
+        centerPanel.add(buildButtonGrid(), BorderLayout.CENTER);
+        centerPanel.add(buildPreview(), BorderLayout.EAST);
+        return centerPanel;
     }
 
     /** 마지막 항목('사용자 지정')을 제외한 프로그램들을 2열 그리드로. (항목 수에 자동 적응) */
