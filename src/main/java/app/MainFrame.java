@@ -11,6 +11,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -33,17 +34,22 @@ final class MainFrame extends JFrame {
     private final AppConfig config;
     private AutoPasteService autoPaste;
     private JTextArea previewArea;
+    private JLabel hookStatusLabel;
+    private JLabel lastCopiedLabel;
 
     MainFrame(AppConfig config) {
         this.config = config;
         initFrame();
         add(buildHeader(), BorderLayout.NORTH);
         add(buildCenter(), BorderLayout.CENTER);
-        add(buildSouth(), BorderLayout.SOUTH);
+        add(buildBottom(), BorderLayout.SOUTH);
     }
 
     void attachAutoPaste(AutoPasteService service) {
         this.autoPaste = service;
+        boolean on = service != null && service.isEnabled();
+        hookStatusLabel.setText(on ? "● 자동 붙여넣기 켜짐" : "● 자동 붙여넣기 꺼짐 — 수동 Ctrl+V로 동작");
+        hookStatusLabel.setForeground(on ? UiConstants.STATUS_ON : UiConstants.STATUS_OFF);
     }
 
     /** 미리보기 영역 — 자동 붙여넣기 자체 테스트용으로 노출. */
@@ -128,10 +134,18 @@ final class MainFrame extends JFrame {
         return wrap;
     }
 
-    private JComponent buildSouth() {
-        JPanel south = new JPanel(new BorderLayout(UiConstants.GAP, 0));
-        south.setBackground(UiConstants.BG);
-        south.setBorder(new EmptyBorder(0, UiConstants.PAD, UiConstants.PAD, UiConstants.PAD));
+    private JComponent buildBottom() {
+        JPanel bottom = new JPanel(new BorderLayout());
+        bottom.setBackground(UiConstants.BG);
+        bottom.add(buildCustomRow(), BorderLayout.NORTH);
+        bottom.add(buildStatusBar(), BorderLayout.SOUTH);
+        return bottom;
+    }
+
+    private JComponent buildCustomRow() {
+        JPanel row = new JPanel(new BorderLayout(UiConstants.GAP, 0));
+        row.setBackground(UiConstants.BG);
+        row.setBorder(new EmptyBorder(0, UiConstants.PAD, UiConstants.PAD, UiConstants.PAD));
 
         List<String> names = config.programNames();
         String customLabel = names.isEmpty() ? "사용자 지정" : names.get(names.size() - 1);
@@ -146,9 +160,31 @@ final class MainFrame extends JFrame {
         customBtn.setToolTipText(UiConstants.CUSTOM_BTN_TOOLTIP);
         customBtn.addActionListener(e -> copyAndArm(field.getText()));
 
-        south.add(field, BorderLayout.CENTER);
-        south.add(customBtn, BorderLayout.EAST);
-        return south;
+        row.add(field, BorderLayout.CENTER);
+        row.add(customBtn, BorderLayout.EAST);
+        return row;
+    }
+
+    /** 하단 상태 표시줄: 자동 붙여넣기 상태(좌) + 마지막 복사한 값(우). */
+    private JComponent buildStatusBar() {
+        JPanel bar = new JPanel(new BorderLayout(UiConstants.GAP, 0));
+        bar.setBackground(UiConstants.STATUS_BG);
+        bar.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(1, 0, 0, 0, UiConstants.BTN_BORDER),
+                new EmptyBorder(6, UiConstants.PAD, 6, UiConstants.PAD)));
+
+        hookStatusLabel = new JLabel("● 자동 붙여넣기 확인 중...");
+        hookStatusLabel.setFont(UiConstants.SUBTITLE_FONT);
+        hookStatusLabel.setForeground(UiConstants.TEXT_MUTED);
+
+        lastCopiedLabel = new JLabel(" ");
+        lastCopiedLabel.setFont(UiConstants.SUBTITLE_FONT);
+        lastCopiedLabel.setForeground(UiConstants.TEXT_MUTED);
+        lastCopiedLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+
+        bar.add(hookStatusLabel, BorderLayout.WEST);
+        bar.add(lastCopiedLabel, BorderLayout.CENTER);
+        return bar;
     }
 
     private void copyAndArm(String text) {
@@ -156,6 +192,13 @@ final class MainFrame extends JFrame {
         if (autoPaste != null) {
             autoPaste.arm();
         }
+        lastCopiedLabel.setText("마지막 복사: " + shorten(text));
+    }
+
+    private static String shorten(String s) {
+        if (s == null) return "";
+        s = s.replace("\n", " ").trim();
+        return s.length() > 20 ? s.substring(0, 20) + "…" : s;
     }
 
     /** 플랫 스타일 버튼 + 호버 효과. accent=true면 강조색(사용자 지정 버튼). */
