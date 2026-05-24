@@ -139,3 +139,35 @@ git push origin --delete v1.1.0    # 원격(GitHub) 태그 삭제
 - CI/CD는 **셸·인코딩 차이**(Windows PowerShell 5.1 vs pwsh 7, BOM 유무)에 민감하다 — ASCII 이름이 가장 안전.
 
 **결과 (2026-05-25):** 위 조치 후 `v1.1.0` 태그를 고친 커밋으로 force 이동·재발행 → **`EntranceHelper.zip` 25.9MB 정상 업로드 확인**. CD 파이프라인 완료. (태그 재발행 시 원격에 이미 태그가 있으면 `git push origin v1.1.0 --force` 필요 — 일반 push는 거부됨.)
+
+## 8. GitHub 웹에서 릴리스 하기 (터미널 없이)
+
+터미널/git 명령 없이 **웹 화면만으로** 릴리스를 낼 수 있다. 우리 워크플로는 "버전 태그가 생기는 것"에 반응하므로, 웹에서 새 태그로 릴리스를 발행하면 **자동으로 exe를 빌드해 zip을 첨부**해 준다.
+
+### 8.1 (사전) 버전 올리기 — *새 버전*일 때만
+- 새 버전을 낼 거면 먼저 `build.gradle`의 `version`을 올린다 (예: `1.1.0` → `1.2.0`). 이건 코드 변경이라 평소대로 PR로 머지.
+- 똑같은 버전을 다시 내는 거면 이 단계 생략.
+- 원칙: 태그(`v1.2.0`)와 `build.gradle` 버전(`1.2.0`)을 일치시킨다 — exe 내부 버전이 거기서 나옴.
+
+### 8.2 릴리스 만들기 + 발행 (= 진행)
+1. 저장소 메인 화면 오른쪽 **"Releases"** → **"Draft a new release"** 버튼
+   - (또는 주소창에 `.../releases/new`)
+2. **"Choose a tag"** 클릭 → 새 태그 이름 입력 (예: `v1.2.0`) → 드롭다운에 뜨는 **"➕ Create new tag: v1.2.0 on publish"** 클릭
+3. **"Target"** 은 `v2` (기본 브랜치) 그대로 둔다 — 태그가 v2 최신 커밋에 붙음
+4. **Release title** 입력 (예: `v1.2.0`). 설명은 비워도 되고, **"Generate release notes"** 누르면 자동 작성
+5. 맨 아래 **"Publish release"** 클릭
+   - → GitHub이 태그를 만들고, 그 순간 **Release 워크플로가 발동**한다
+6. ⚠️ 방금 만든 릴리스는 **처음엔 zip이 없다.** 워크플로가 끝나면(~1-2분) `EntranceHelper.zip`이 **자동으로 첨부**된다 — 바로 안 보여도 정상.
+
+### 8.3 확인
+1. 상단 **"Actions"** 탭 → **"Release"** 실행이 🟡(진행) → 🟢(성공). (~1-2분)
+   - 핵심 한 줄: `Zip app-image` 단계의 **`Created EntranceHelper.zip (NN MB)`** — MB로 찍히면 정상.
+2. **"Releases"** 탭 → 방금 버전 → **`▸ Assets`** 펼치기 → **`EntranceHelper.zip` 크기가 ~25MB** 인지 확인.
+   - byte 단위로 작으면 실패 — Actions가 크기 가드로 빨간 X가 됐을 것(조용한 빈 릴리스는 안 나옴).
+
+### 8.4 잘못했을 때 되돌리기 (웹)
+- **릴리스 삭제:** Releases → 해당 버전 클릭 → 우측 **🗑(Delete)**
+- **태그 삭제:** 저장소 메인 → 파일 목록 위 **"Tags"**(커밋 수 옆) → 해당 태그 → **Delete**
+- 같은 버전을 다시 내려면: 릴리스 + 태그를 둘 다 삭제한 뒤 **8.2부터** 다시.
+
+> 참고: 웹에서 publish 했는데 Actions에 "Release" 실행이 안 뜨면 알려줘 — 드물게 웹 태그가 push 이벤트를 안 쏘는 경우가 있는데, 그땐 워크플로 트리거에 `release: [published]`를 보강하면 된다.
