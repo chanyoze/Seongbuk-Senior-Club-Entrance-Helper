@@ -19,6 +19,15 @@ repositories {
 dependencies {
     // 기존 lib/jnativehook-2.2.2.jar 직접 커밋을 대체 (Maven Central에서 자동 다운로드)
     implementation 'com.github.kwhat:jnativehook:2.2.2'
+
+    // 테스트 (JUnit 5)
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
 }
 
 application {

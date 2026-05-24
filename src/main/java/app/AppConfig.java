@@ -37,8 +37,12 @@ final class AppConfig {
         }
 
         String programsCsv = props.getProperty("programs", DEFAULT_PROGRAMS);
-        List<String> programs = Arrays.asList(programsCsv.split("\\s*,\\s*"));
-        return new AppConfig(programs);
+        return new AppConfig(parsePrograms(programsCsv));
+    }
+
+    /** "a, b ,c" 형식 CSV를 콤마(주변 공백 허용) 기준으로 분리. 파일 의존 없이 테스트하려고 분리한 순수 함수. */
+    static List<String> parsePrograms(String csv) {
+        return Arrays.asList(csv.split("\\s*,\\s*"));
     }
 
     private static Path resolveConfigPath() {
