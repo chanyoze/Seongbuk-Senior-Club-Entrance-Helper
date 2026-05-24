@@ -54,17 +54,18 @@ CI(3단계)는 "코드가 통과하는지"를 본다. CD는 한 발 더 나가 *
 - **트리거:** `on: push: tags: ['v*']`
 - **러너:** `windows-latest` (Windows exe 빌드)
 - **권한:** `permissions: contents: write` (Release 생성·업로드)
-- **단계:** checkout → JDK 25(temurin) → Gradle → `.\gradlew.bat jpackageImage` → `build/jpackage/출입도우미/` 폴더를 `출입도우미.zip`으로 압축 → `softprops/action-gh-release@v2`로 Release 생성 + zip 첨부 (릴리스 노트 자동 생성)
+- **단계:** checkout → JDK 25(temurin) → Gradle → `.\gradlew.bat jpackageImage` → **실제 생성된 app-image 폴더를 직접 탐지해 `tar`로 `EntranceHelper.zip` 압축**(크기 가드: 1MB 미만이면 실패) → `softprops/action-gh-release@v2`로 Release 생성 + zip 첨부 (릴리스 노트 자동 생성)
+  - ※ zip 방식의 함정과 교정 내역은 아래 [§7 트러블슈팅](#7-트러블슈팅) 참고
 - **버전:** 태그(`v1.1.0`)와 `build.gradle`의 `version`(`1.1.0`)을 일치시킨다.
 - **릴리스 내는 법:**
   ```powershell
   git tag v1.1.0
-  git push origin v1.1.0   # → release.yml 실행 → Releases에 출입도우미.zip 업로드
+  git push origin v1.1.0   # → release.yml 실행 → Releases에 EntranceHelper.zip 업로드
   ```
 
 ## 5. 메모
 
-- zip 파일명은 **버전 없이** `출입도우미.zip` → `releases/latest/download/출입도우미.zip` 고정 링크가 버전이 바뀌어도 그대로 유효(5단계 다운로드 버튼용). 버전 표시는 Release 제목/태그(`v1.1.0`)가 담당.
+- zip 파일명은 **버전 없이** `EntranceHelper.zip` → `releases/latest/download/EntranceHelper.zip` 고정 링크가 버전이 바뀌어도 그대로 유효(5단계 다운로드 버튼용). 버전 표시는 Release 제목/태그(`v1.1.0`)가 담당.
 - 최신 Release는 `releases/latest/download/...` 고정 URL로 받을 수 있음 → **5단계(GitHub Pages 다운로드 버튼)의 기반**.
 - exe 빌드는 CI(ubuntu)와 분리해 CD에서 windows 러너로 처리.
 - 첫 릴리스 검증: `feature/cd` 머지 후 `v2`에 `v1.1.0` 태그를 push하면 Actions가 돌며 Releases에 zip이 올라온다.
@@ -89,7 +90,7 @@ CI(3단계)는 "코드가 통과하는지"를 본다. CD는 한 발 더 나가 *
    ```
 3. 태그 생성 (annotated = 설명 포함):
    ```powershell
-   git tag -a v1.1.0 -m "출입도우미 v1.1.0 첫 릴리스"
+   git tag -a v1.1.0 -m "EntranceHelper v1.1.0 첫 릴리스"
    ```
    → 아직 내 컴퓨터에만 존재
 4. 태그를 GitHub로 push:
@@ -97,7 +98,7 @@ CI(3단계)는 "코드가 통과하는지"를 본다. CD는 한 발 더 나가 *
    git push origin v1.1.0
    ```
    → 이 순간 Release 워크플로 발동
-5. 확인: GitHub → **Actions 탭**(Release 실행, 몇 분) → 끝나면 **Releases 탭**에 `v1.1.0` + `출입도우미.zip`
+5. 확인: GitHub → **Actions 탭**(Release 실행, 몇 분) → 끝나면 **Releases 탭**에 `v1.1.0` + `EntranceHelper.zip`
 
 ### 방법 B — Antigravity(VS Code 계열) GUI
 - `Ctrl+Shift+P` → **`Git: Create Tag`** → 이름 `v1.1.0`, 메시지 입력
@@ -113,3 +114,26 @@ git push origin --delete v1.1.0    # 원격(GitHub) 태그 삭제
 
 ### 다음 버전 올릴 때
 - `build.gradle`의 `version`을 새 값(예: `1.2.0`)으로 올리고 → 그에 맞는 태그(`v1.2.0`)를 위 절차로 push.
+
+## 7. 트러블슈팅
+
+### [2026-05-25] 첫 릴리스 zip이 460 byte(빈 파일)로 올라간 문제
+
+**증상:** `v1.1.0` 태그 push → Release 워크플로는 **초록(성공)** → 그런데 Releases에 올라온 `출입도우미.zip`이 **460 byte**(정상 ~25MB). 워크플로가 1분도 안 걸려 끝난 것도 의심 신호였음.
+
+**조사 과정:**
+- 빌드는 정상 — 로그에 `BUILD SUCCESSFUL`, `exe: ...\build\jpackage\출입도우미\출입도우미.exe` 생성 확인. 로컬 재현도 76.5MB app-image 정상 생성.
+- 한글 폴더명·BOM은 **원인 아님** — `tar`로 한글 폴더를 압축하니 내용이 정상 포함됨(검증). `appname.txt`도 BOM 없는 순수 UTF-8.
+- **진짜 원인:** zip 단계가 `appname.txt`를 **다시 읽어 폴더 경로를 재조립**(`Compress-Archive -Path "build/jpackage/$name"`)하는 방식이 **인코딩에 취약**했음. BOM 없는 UTF-8 파일을 셸이 잘못 읽으면 이름이 깨지고(로컬 PowerShell 5.1에서 `異쒖엯?꾩슦誘?`로 깨지는 것 재현) → 엉뚱하거나 빈 경로가 압축됨. 이때 `Compress-Archive`는 **에러도 없이 빈 zip**을 만들고, 그게 그대로 Release에 업로드됨.
+
+**조치:**
+1. zip 단계에서 **이름 재조립 제거** → 실제 생성된 폴더를 `Get-ChildItem build/jpackage -Directory`로 직접 탐지.
+2. `Compress-Archive` → **`tar`(bsdtar)** 로 교체 (더 안정적).
+3. **크기 가드** 추가 — zip이 1MB 미만이면 빌드를 실패시켜 빈 zip 재발 차단.
+4. 패키지 이름을 **ASCII(`EntranceHelper`)** 로 변경 → 인코딩 변수 완전 제거 + 다운로드 URL 단순화. (앱 내부 한글 UI는 그대로)
+5. 잘못된 `v1.1.0` 릴리스·태그 삭제 후 재릴리스.
+
+**교훈:**
+- 파일명을 다른 곳에서 다시 읽어 경로를 재조립하지 말고, **실제 산출물을 직접 참조**하라.
+- 배포 산출물엔 **"비정상 크기면 실패"** 가드를 둬라 (조용한 실패 방지).
+- CI/CD는 **셸·인코딩 차이**(Windows PowerShell 5.1 vs pwsh 7, BOM 유무)에 민감하다 — ASCII 이름이 가장 안전.

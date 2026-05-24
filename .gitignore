@@ -10,3 +10,9 @@
 Thumbs.db
 .DS_Store
 desktop.ini
+
+# 분석용 로컬 로그 (저장소에 안 올림)
+/log/
+
+# 로컬 테스트로 생긴 릴리스 zip
+/EntranceHelper.zip
