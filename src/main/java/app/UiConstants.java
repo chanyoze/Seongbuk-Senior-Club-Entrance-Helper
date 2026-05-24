@@ -29,6 +29,9 @@ final class UiConstants {
     static final Color CUSTOM_BTN_BG = ACCENT;
     static final Color CUSTOM_BTN_FG = Color.WHITE;
     static final Color FIELD_BORDER = new Color(0xC4CCDA);
+    static final Color STATUS_BG = new Color(0xECEFF4);
+    static final Color STATUS_ON = new Color(0x1E8E3E);
+    static final Color STATUS_OFF = new Color(0xC0392B);
 
     // 폰트
     static final String FONT_FAMILY = "맑은 고딕";
