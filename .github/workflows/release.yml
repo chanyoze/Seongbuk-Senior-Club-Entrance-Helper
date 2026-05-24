@@ -31,13 +31,18 @@ jobs:
       - name: Zip app-image
         shell: pwsh
         run: |
-          $name = (Get-Content appname.txt -Raw).Trim()
-          # 버전 없는 고정 이름 → releases/latest/download/<name>.zip 링크가 항상 유효 (5단계 Pages용)
-          Compress-Archive -Path "build/jpackage/$name" -DestinationPath "$name.zip" -Force
-          Write-Host "Created $name.zip"
+          # jpackage가 만든 실제 폴더를 직접 찾는다 (appname 재읽기 안 함 → 인코딩 문제 회피)
+          $dir = Get-ChildItem build/jpackage -Directory | Select-Object -First 1
+          if (-not $dir) { throw "app-image 폴더를 찾을 수 없습니다 (jpackage 실패?)" }
+          # Compress-Archive 대신 tar(bsdtar) 사용 — 더 안정적. 버전 없는 고정 이름(릴리스 latest 링크용)
+          tar -a -c -f EntranceHelper.zip -C build/jpackage -- $dir.Name
+          $size = (Get-Item EntranceHelper.zip).Length
+          Write-Host ("Created EntranceHelper.zip ({0:N1} MB)" -f ($size / 1MB))
+          # 빈/깨진 zip이 릴리스되는 사고(이전 460byte) 재발 차단
+          if ($size -lt 1MB) { throw "zip이 비정상적으로 작습니다 ($size bytes) - 내용 누락 의심" }
 
       - name: Create Release & upload zip
         uses: softprops/action-gh-release@v2
         with:
-          files: '*.zip'
+          files: EntranceHelper.zip
           generate_release_notes: true
