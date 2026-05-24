@@ -7,11 +7,11 @@
 
 ```
 Seongbuk-Senior-Club-Entrance-Helper-2/
-├── README.md                  프로젝트 소개 (무엇을 하는 앱인가)
-├── ci_cd_master_plan.md       전략 — Phase 1~5 큰 그림 (장기 계획)
-└── 진행기록/                   ← 작업 단위별 실행 기록
+├── README.md                  프로젝트 소개 (무엇을 하는 앱인가, GitHub 첫 화면)
+└── 진행기록/                   ← 모든 문서 (전략 + 작업 단위별 실행 기록)
     ├── README.md              (이 파일) 색인 + 관리 규칙
-    ├── refactoring.md         코드 리팩토링 회고 (v1 원본 → v1.1)
+    ├── ci_cd_master_plan.md   전략 — Phase 1~5 큰 그림 (장기 계획)
+    ├── refactoring.md         코드 리팩토링 회고 (v1 원본 → v1.1 → v1.2)
     ├── setup.md               환경 구축 (Git 연결·JDK 설치·로컬 빌드 검증)
     ├── gradle.md              Gradle 마이그레이션 (빌드 표준화)
     ├── tests.md               테스트 (JUnit 5 단위 테스트)
