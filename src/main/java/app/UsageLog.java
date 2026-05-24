@@ -35,7 +35,14 @@ final class UsageLog {
     }
 
     static Path defaultDir() {
-        return Paths.get(System.getProperty("user.home"), "EntranceHelper", "usage");
+        String appPath = System.getProperty("jpackage.app-path");
+        if (appPath != null) {                       // 패키지(exe) 실행 → exe 옆 log/
+            Path parent = Paths.get(appPath).getParent();
+            if (parent != null) {
+                return parent.resolve("log");
+            }
+        }
+        return Paths.get("log");                      // 개발 실행 → 작업 디렉토리(프로젝트 루트)의 log/
     }
 
     /** 복사 기록: 오늘 CSV에 한 줄 추가 + 메모리 카운트 증가. */
