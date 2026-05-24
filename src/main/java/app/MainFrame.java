@@ -13,12 +13,15 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
+import javax.swing.text.JTextComponent;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.KeyboardFocusManager;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
@@ -43,6 +46,7 @@ final class MainFrame extends JFrame {
         add(buildHeader(), BorderLayout.NORTH);
         add(buildCenter(), BorderLayout.CENTER);
         add(buildBottom(), BorderLayout.SOUTH);
+        setupHotkeys();
     }
 
     void attachAutoPaste(AutoPasteService service) {
@@ -64,6 +68,27 @@ final class MainFrame extends JFrame {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         getContentPane().setBackground(UiConstants.BG);
+    }
+
+    /** 숫자키 1~9로 앞 9개 항목 선택(복사+무장). 단, 입력칸/미리보기에 타이핑 중이면 무시해 숫자 입력을 보존한다. */
+    private void setupHotkeys() {
+        List<String> names = config.programNames();
+        int gridCount = Math.max(0, names.size() - 1);
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(e -> {
+            if (e.getID() != KeyEvent.KEY_PRESSED) {
+                return false;
+            }
+            Component focus = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+            if (focus instanceof JTextComponent) {
+                return false;   // 텍스트 입력 중 → 숫자가 그대로 들어가게 둠
+            }
+            int idx = e.getKeyCode() - KeyEvent.VK_1;   // VK_1..VK_9 → 0..8
+            if (idx >= 0 && idx < 9 && idx < gridCount) {
+                copyAndArm(names.get(idx));
+                return true;   // 소비
+            }
+            return false;
+        });
     }
 
     private JComponent buildHeader() {
@@ -107,7 +132,8 @@ final class MainFrame extends JFrame {
         int gridCount = Math.max(0, names.size() - 1);
         for (int i = 0; i < gridCount; i++) {
             final String text = names.get(i);
-            JButton b = makeButton(text, false);
+            String label = (i < 9) ? (i + 1) + "  " + text : text;   // 앞 9개는 숫자키 힌트 표시
+            JButton b = makeButton(label, false);
             b.addActionListener(e -> copyAndArm(text));
             grid.add(b);
         }
