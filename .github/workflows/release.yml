@@ -1,0 +1,43 @@
+name: Release
+
+# 버전 태그(v1.0.0 등)를 push할 때만 실행 → 의도적인 릴리스
+on:
+  push:
+    tags: [ 'v*' ]
+
+permissions:
+  contents: write   # GitHub Release 생성 및 자산(zip) 업로드 권한
+
+jobs:
+  release:
+    runs-on: windows-latest   # jpackage로 Windows .exe를 만들어야 하므로 windows 러너
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Set up Gradle (캐시 포함)
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build native app-image (.exe + 내장 JRE)
+        shell: pwsh
+        run: .\gradlew.bat jpackageImage --no-daemon
+
+      - name: Zip app-image
+        shell: pwsh
+        run: |
+          $name = (Get-Content appname.txt -Raw).Trim()
+          # 버전 없는 고정 이름 → releases/latest/download/<name>.zip 링크가 항상 유효 (5단계 Pages용)
+          Compress-Archive -Path "build/jpackage/$name" -DestinationPath "$name.zip" -Force
+          Write-Host "Created $name.zip"
+
+      - name: Create Release & upload zip
+        uses: softprops/action-gh-release@v2
+        with:
+          files: '*.zip'
+          generate_release_notes: true

@@ -44,19 +44,27 @@ CI(3단계)는 "코드가 통과하는지"를 본다. CD는 한 발 더 나가 *
 
 > 정리: (A)는 동작 불가라 제외. (B)는 의존성 0·포터블·단순. (C)는 설치 UX는 최고지만 도구·복잡도 비용이 큼(정식 설치본이 필요해질 때의 옵션).
 
-## 3. 선택 (확정 시 채움)
+## 3. 선택 (확정)
 
-- 트리거: _______
-- 산출물: _______
-- (확정되면 이유와 함께 여기에 기록)
+- **트리거: (C) 버전 태그 push (`tags: ['v*']`)** — 의도적·버전 단위 배포가 릴리스 본질에 맞고, CI(자주)와 역할이 분리되며 업계 표준이라서.
+- **산출물: (B) app-image 폴더 → zip** — 자바 미설치 PC에서도 풀고 더블클릭이면 끝, WiX 같은 추가 도구 없이 가장 단순. (정식 설치본이 필요해지면 추후 MSI 추가 가능.)
 
-## 4. 구현 예정 (`release.yml`)
+## 4. 구현 (`.github/workflows/release.yml`)
 
-- 트리거/산출물 확정 후 작성
-- 공통 골격: checkout → JDK 25 → `gradlew jpackageImage` → (산출물 포장) → `softprops/action-gh-release`로 Releases 업로드
-- exe 빌드는 OS 종속이라 **windows 러너** 필요, Release 생성엔 `permissions: contents: write`
+- **트리거:** `on: push: tags: ['v*']`
+- **러너:** `windows-latest` (Windows exe 빌드)
+- **권한:** `permissions: contents: write` (Release 생성·업로드)
+- **단계:** checkout → JDK 25(temurin) → Gradle → `.\gradlew.bat jpackageImage` → `build/jpackage/출입도우미/` 폴더를 `출입도우미.zip`으로 압축 → `softprops/action-gh-release@v2`로 Release 생성 + zip 첨부 (릴리스 노트 자동 생성)
+- **버전:** 태그(`v1.1.0`)와 `build.gradle`의 `version`(`1.1.0`)을 일치시킨다.
+- **릴리스 내는 법:**
+  ```powershell
+  git tag v1.1.0
+  git push origin v1.1.0   # → release.yml 실행 → Releases에 출입도우미.zip 업로드
+  ```
 
 ## 5. 메모
 
+- zip 파일명은 **버전 없이** `출입도우미.zip` → `releases/latest/download/출입도우미.zip` 고정 링크가 버전이 바뀌어도 그대로 유효(5단계 다운로드 버튼용). 버전 표시는 Release 제목/태그(`v1.1.0`)가 담당.
 - 최신 Release는 `releases/latest/download/...` 고정 URL로 받을 수 있음 → **5단계(GitHub Pages 다운로드 버튼)의 기반**.
 - exe 빌드는 CI(ubuntu)와 분리해 CD에서 windows 러너로 처리.
+- 첫 릴리스 검증: `feature/cd` 머지 후 `v2`에 `v1.1.0` 태그를 push하면 Actions가 돌며 Releases에 zip이 올라온다.

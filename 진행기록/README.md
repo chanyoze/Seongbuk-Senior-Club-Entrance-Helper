@@ -42,7 +42,7 @@ Seongbuk-Senior-Club-Entrance-Helper-2/
 | 1 | 빌드 표준화 (Gradle) | [gradle.md](gradle.md) | ✅ 완료 |
 | 2 | 테스트 (JUnit) | [tests.md](tests.md) | ✅ 완료 |
 | 3 | CI (GitHub Actions) | [ci.md](ci.md) | ✅ 완료 (PR에서 첫 실행 확인) |
-| 4 | CD (jpackage → Releases) | [cd.md](cd.md) | 🔄 설계 기록 (구현 예정) |
+| 4 | CD (jpackage → Releases) | [cd.md](cd.md) | 🔄 구현 완료 (태그 릴리스로 검증 예정) |
 | 5 | 배포 페이지 (GitHub Pages) | (예정) pages.md | ⬜ |
 | — | 코드 리팩토링 (선행 작업) | [refactoring.md](refactoring.md) | ✅ 완료 |
 
