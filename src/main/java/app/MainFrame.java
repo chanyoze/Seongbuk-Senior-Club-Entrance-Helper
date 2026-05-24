@@ -34,6 +34,7 @@ import java.util.List;
 final class MainFrame extends JFrame {
 
     private final AppConfig config;
+    private final UsageLog usageLog = new UsageLog();
     private AutoPasteService autoPaste;
     private JTextArea previewArea;
     private JTextField customField;
@@ -218,7 +219,8 @@ final class MainFrame extends JFrame {
         if (autoPaste != null) {
             autoPaste.arm();
         }
-        lastCopiedLabel.setText("마지막 복사: " + shorten(text));
+        usageLog.record(text);
+        lastCopiedLabel.setText("마지막 복사: " + shorten(text) + " (오늘 " + usageLog.countOf(text) + "회)");
     }
 
     private static String shorten(String s) {
