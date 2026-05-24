@@ -132,7 +132,7 @@ final class MainFrame extends JFrame {
         int gridCount = Math.max(0, names.size() - 1);
         for (int i = 0; i < gridCount; i++) {
             final String text = names.get(i);
-            String label = (i < 9) ? (i + 1) + "  " + text : text;   // 앞 9개는 숫자키 힌트 표시
+            String label = (i < 9) ? hotkeyLabel(i, text) : text;   // 앞 9개는 ①~⑨ 단축키 배지
             JButton b = makeButton(label, false);
             b.addActionListener(e -> copyAndArm(text));
             grid.add(b);
@@ -225,6 +225,16 @@ final class MainFrame extends JFrame {
         if (s == null) return "";
         s = s.replace("\n", " ").trim();
         return s.length() > 20 ? s.substring(0, 20) + "…" : s;
+    }
+
+    /** 앞 9개 버튼에 ①~⑨ 원문자 배지(accent 색·굵게)를 붙인 HTML 라벨. */
+    private static String hotkeyLabel(int i, String text) {
+        char circled = (char) (0x2460 + i);   // ① ② ... ⑨
+        return "<html><font color='#2D6CDF' size='+1'><b>" + circled + "</b></font>&nbsp; " + htmlEscape(text) + "</html>";
+    }
+
+    private static String htmlEscape(String s) {
+        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
 
     /** 플랫 스타일 버튼 + 호버 효과. accent=true면 강조색(사용자 지정 버튼). */
