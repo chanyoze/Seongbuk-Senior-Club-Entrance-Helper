@@ -557,7 +557,7 @@ Docker/컨테이너 기반 CI/CD를 제대로 학습하기 위해, **별도 저�
 - 파일: `MainFrame`(`setupHotkeys` + 버튼 번호 라벨), `UiConstants`(안내문에 단축키 힌트).
 
 ### 9.4 사용 기록/통계 (배치 4 · 브랜치 `feature/usage-stats`)
-- 항목 복사 시 **날짜별 CSV**(`log/usage-YYYY-MM-DD.csv`)에 `타임스탬프,항목` 한 줄 기록. 파일 I/O 실패는 무시(핵심 기능 방해 금지). 위치: 개발 실행은 프로젝트 `log/`, 패키지(exe) 실행은 **exe 옆 `log/`**(`jpackage.app-path` 기준 — 다른 PC에서도 동작).
+- 항목 복사 시 **날짜별 CSV**(`log/log-YYYY-MM-DD.csv`)에 `타임스탬프,항목` 한 줄 기록. 파일 I/O 실패는 무시(핵심 기능 방해 금지). 위치: 개발 실행은 프로젝트 `log/`, 패키지(exe) 실행은 **exe 옆 `log/`**(`jpackage.app-path` 기준 — 다른 PC에서도 동작).
 - **항목별 횟수 집계** — 재시작해도 오늘 CSV를 읽어 카운트 복원. 상태바에 `마지막 복사: ○○ (오늘 N회)` 표시.
 - 순수 함수로 분리해 단위 테스트: `csvEscape` / `formatRow` / `parseItem`(라운드트립) / `tally` → `UsageLogTest` 7개.
 - 파일: 신규 `UsageLog`, `MainFrame`(record + 카운트 표시), 신규 `UsageLogTest`.

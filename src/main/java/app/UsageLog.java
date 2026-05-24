@@ -67,7 +67,7 @@ final class UsageLog {
     }
 
     private Path todayFile() {
-        return dir.resolve("usage-" + LocalDate.now() + ".csv");
+        return dir.resolve("log-" + LocalDate.now() + ".csv");
     }
 
     /** 오늘 CSV가 있으면 읽어 항목별 카운트를 복원(재시작해도 '오늘 N회' 유지). */
