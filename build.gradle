@@ -3,7 +3,7 @@ plugins {
 }
 
 group = 'app'
-version = '1.2.0'
+version = '1.3.0'
 
 java {
     toolchain {
@@ -32,6 +32,13 @@ tasks.named('test') {
 
 application {
     mainClass = 'app.App'
+}
+
+// 앱이 자기 버전을 런타임에 알 수 있도록 jar 매니페스트에 기록(UiConstants.appVersion이 읽음)
+tasks.named('jar') {
+    manifest {
+        attributes('Implementation-Version': project.version)
+    }
 }
 
 tasks.withType(JavaCompile).configureEach {
