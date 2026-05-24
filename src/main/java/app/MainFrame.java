@@ -11,6 +11,7 @@ final class MainFrame extends JFrame {
 
     private final AppConfig config;
     private AutoPasteService autoPaste;
+    private TextArea previewArea;
 
     MainFrame(AppConfig config) {
         this.config = config;
@@ -44,11 +45,16 @@ final class MainFrame extends JFrame {
     }
 
     private void addPreviewArea() {
-        TextArea area = new TextArea();
-        area.setBounds(UiConstants.TEXTAREA_X, UiConstants.TEXTAREA_Y,
-                       UiConstants.TEXTAREA_W, UiConstants.TEXTAREA_H);
-        area.append("\n");
-        getContentPane().add(area);
+        previewArea = new TextArea();
+        previewArea.setBounds(UiConstants.TEXTAREA_X, UiConstants.TEXTAREA_Y,
+                              UiConstants.TEXTAREA_W, UiConstants.TEXTAREA_H);
+        previewArea.append("\n");
+        getContentPane().add(previewArea);
+    }
+
+    /** 창 안의 미리보기 영역 — 자동 붙여넣기 자체 테스트용으로 노출. */
+    TextArea previewArea() {
+        return previewArea;
     }
 
     private JTextField addCustomField() {

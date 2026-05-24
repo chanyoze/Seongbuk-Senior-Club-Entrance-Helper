@@ -2,7 +2,7 @@
 
 > `build.ps1`(수동 PowerShell 빌드) → 표준 **Gradle 빌드**로 전환.
 > 작업일: 2026-05-25 · 브랜치: `feature/gradle` · 커밋: `9f4203d`
-> 이전 단계: [setup.md](setup.md) · 전략 큰 그림: [../ci_cd_master_plan.md](../ci_cd_master_plan.md)
+> 이전 단계: [setup.md](setup.md) · 전략 큰 그림: [ci_cd_master_plan.md](ci_cd_master_plan.md)
 
 ## 1. 왜 했나
 
