@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>출입관리 도우미 — 다운로드</title>
+  <style>
+    :root { --accent: #2d6cdf; --accent-dark: #1f53b8; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Malgun Gothic", "맑은 고딕", sans-serif;
+      color: #1c2530;
+      background: linear-gradient(160deg, #eef3fb, #fdfefe);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      background: #fff;
+      max-width: 560px;
+      width: 100%;
+      border-radius: 18px;
+      box-shadow: 0 12px 40px rgba(30, 50, 90, 0.12);
+      padding: 44px 40px;
+      text-align: center;
+    }
+    h1 { margin: 0 0 8px; font-size: 28px; }
+    .sub { color: #5b6675; margin: 0 0 30px; font-size: 15px; line-height: 1.65; }
+    .btn {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      text-decoration: none;
+      font-size: 18px;
+      font-weight: 600;
+      padding: 16px 38px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(45, 108, 223, 0.35);
+      transition: transform 0.08s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+    .btn:hover { transform: translateY(-2px); background: var(--accent-dark); box-shadow: 0 10px 26px rgba(45, 108, 223, 0.45); }
+    .meta { margin-top: 14px; font-size: 13px; color: #8a93a3; }
+    .steps {
+      text-align: left;
+      margin: 32px auto 0;
+      max-width: 420px;
+      color: #3a4453;
+      font-size: 14.5px;
+      line-height: 1.95;
+    }
+    code { background: #eef1f6; padding: 2px 7px; border-radius: 6px; font-size: 13px; }
+    .foot { margin-top: 28px; font-size: 13px; color: #9aa3b2; }
+    .foot a { color: var(--accent); text-decoration: none; }
+    .foot a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>🏛️ 출입관리 도우미</h1>
+    <p class="sub">
+      복지관 어르신 출입 기록을 돕는 프로그램입니다.<br />
+      버튼 한 번으로 항목을 복사하고, 다음 클릭 위치에 자동으로 붙여넣습니다.
+    </p>
+
+    <a
+      class="btn"
+      href="https://github.com/chanyoze/Seongbuk-Senior-Club-Entrance-Helper/releases/latest/download/EntranceHelper.zip"
+    >⬇️ 최신 버전 다운로드 (.zip)</a>
+    <p class="meta">Windows · 자바(Java) 설치 불필요 · 약 26MB</p>
+
+    <ol class="steps">
+      <li>위 버튼으로 <b>EntranceHelper.zip</b> 을 다운로드합니다.</li>
+      <li>다운로드한 파일을 <b>압축 풀기</b> 합니다. (오른쪽 클릭 → 압축 풀기)</li>
+      <li>폴더 안의 <code>EntranceHelper.exe</code> 를 더블클릭하면 실행됩니다.</li>
+    </ol>
+
+    <p class="foot">
+      <a href="https://github.com/chanyoze/Seongbuk-Senior-Club-Entrance-Helper/releases/latest">전체 릴리스 보기</a>
+      &nbsp;·&nbsp;
+      <a href="https://github.com/chanyoze/Seongbuk-Senior-Club-Entrance-Helper">소스 코드 (GitHub)</a>
+    </p>
+  </main>
+</body>
+</html>
