@@ -562,10 +562,17 @@ Docker/컨테이너 기반 CI/CD를 제대로 학습하기 위해, **별도 저�
 - 순수 함수로 분리해 단위 테스트: `csvEscape` / `formatRow` / `parseItem`(라운드트립) / `tally` → `UsageLogTest` 7개.
 - 파일: 신규 `UsageLog`, `MainFrame`(record + 카운트 표시), 신규 `UsageLogTest`.
 
-### 9.5 예정 (배치 5~6)
+### 9.5 항목 편집 UI (배치 5 · 브랜치 `feature/item-editor`)
+- 헤더 우측에 **`✎ 항목 편집`** 버튼 → **모달 다이얼로그**(`ProgramEditorDialog`)에서 버튼 항목을 **추가/삭제/위·아래 순서변경**.
+  - 맨 끝 **`사용자 지정` 항목은 편집 대상에서 제외**하고 항상 끝에 고정(우측 입력칸 복사 버튼이라 의미가 다름).
+  - `JList` + `DefaultListModel`, 사이드 버튼(＋추가 / －삭제 / ▲위로 / ▼아래로) + 하단 저장/취소.
+- 저장 시 **`config.properties`에 평문(UTF-8)으로 기록**(`AppConfig.save`) 후, **버튼 그리드만 다시 그려** 즉시 반영(`reloadPrograms` — 미리보기·상태바·입력칸은 유지).
+- **단축키도 편집 결과 반영**: `setupHotkeys`가 매 입력마다 `config.programNames()`를 **현재 값으로 다시 읽도록** 변경(이전엔 시작 시점 목록을 캡처해 편집 후 어긋남).
+- 파일: 신규 `ProgramEditorDialog`, `AppConfig`(`save` 추가), `MainFrame`(헤더에 편집 버튼 + `openEditor`/`reloadPrograms`, `setupHotkeys` 최신값 읽기).
+
+### 9.6 예정 (배치 6)
 | 배치 | 기능 |
 |---|---|
-| 5 | 항목 편집 UI (추가/삭제/순서변경) |
 | 6 | About 다이얼로그 + 업데이트 확인 (GitHub API) |
 
 → 완료 후 `build.gradle` 버전 `1.3.0` + 태그 `v1.3.0`으로 릴리스.

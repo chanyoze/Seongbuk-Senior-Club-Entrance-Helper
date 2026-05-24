@@ -45,6 +45,14 @@ final class AppConfig {
         return Arrays.asList(csv.split("\\s*,\\s*"));
     }
 
+    /** programs 목록을 config.properties에 저장(평문 UTF-8). load()와 같은 위치에 쓴다. */
+    static void save(List<String> programs) throws IOException {
+        String content = "# 버튼에 표시할 프로그램 이름 목록 (콤마로 구분)" + System.lineSeparator()
+                + "# 마지막 항목은 우측 텍스트필드에 입력된 값을 복사하는 '사용자 지정' 버튼이 됩니다." + System.lineSeparator()
+                + "programs=" + String.join(",", programs) + System.lineSeparator();
+        Files.writeString(resolveConfigPath(), content, StandardCharsets.UTF_8);
+    }
+
     private static Path resolveConfigPath() {
         String appPath = System.getProperty("jpackage.app-path");
         if (appPath != null) {
