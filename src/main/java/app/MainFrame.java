@@ -115,7 +115,7 @@ final class MainFrame extends JFrame {
         titles.add(Box.createVerticalStrut(4));
         titles.add(subtitle);
 
-        JButton edit = new JButton("✎ 항목 편집");
+        JButton edit = new JButton("항목 편집");
         edit.setFont(UiConstants.BTN_FONT);
         edit.setForeground(Color.WHITE);
         edit.setBackground(UiConstants.ACCENT_DARK);
