@@ -37,3 +37,37 @@ CI는 PR/푸시마다 "자동으로 돌릴 검증"이 있어야 의미가 있다
 - **CI 테스트 대상에서 제외(수동 확인 영역):** `MainFrame`(GUI), `AutoPasteService`(JNativeHook 네이티브 후킹), `ClipboardService`(AWT 시스템 클립보드 — 헤드리스에서 `HeadlessException`).
 - 새 테스트는 `src/test/java/app/`에 `*Test.java`로 두면 `gradlew test`가 자동 수집.
 - **다음(3단계 CI):** GitHub Actions에서 `gradlew build`(테스트 포함)를 push/PR마다 자동 실행.
+
+## 6. 수동으로 테스트 하는 방법
+
+> CI 자동화 전에(또는 별개로) 직접 돌려 확인하는 방법. 환경: **Antigravity IDE**(VS Code 계열).
+
+### A. 단위 테스트 실행 (JUnit)
+
+**① Antigravity 테스트 탐색기 — 추천**
+1. 왼쪽 사이드바의 **플라스크(시험관) 아이콘 = `Testing`** 클릭
+2. `AppConfigTest` 아래 테스트 4개가 보임 → 맨 위 **▶▶ (Run All Tests)**
+3. 각 테스트 옆 **초록 ✓ = 통과**, 빨강 ✗ = 실패
+   - 또는 `src/test/java/app/AppConfigTest.java`를 열고, 클래스/`@Test` 메서드 옆 **▶** 아이콘으로 개별 실행
+
+**② 터미널**
+```powershell
+cd C:\study\Seongbuk-Senior-Club-Entrance-Helper-2
+.\gradlew test --rerun-tasks   # 변경 없으면 UP-TO-DATE로 건너뛰므로 강제 재실행
+```
+통과 → `BUILD SUCCESSFUL` / 실패 → 깨진 테스트명 + 리포트 경로 출력.
+
+**③ HTML 리포트 (브라우저)**
+`build/reports/tests/test/index.html` — tests·failures·성공률 + 테스트별 결과.
+(※ `build/`는 git에 안 올리는 로컬 폴더라 테스트를 돌려야 생성·갱신됨)
+
+### B. 앱 육안 확인 (GUI 동작)
+
+자동 테스트로 못 잡는 GUI·자동 붙여넣기는 직접 띄워서 확인한다.
+- 실행: `src/main/java/app/App.java`의 `main()` 옆 **▶ Run**, 또는 터미널 `.\gradlew run`
+- 확인 체크리스트:
+  1. 창이 뜸 — 제목 `이찬호`, 헤더 "출입관리 도우미", 버튼 13개
+  2. 버튼 클릭 → 클립보드 복사 (메모장에 `Ctrl+V`로 확인)
+  3. **자동 붙여넣기:** 버튼 클릭 후 다른 창의 입력칸을 좌클릭 → 자동 paste + 클립보드 비움
+  4. `사용자 지정` 버튼 → 오른쪽 입력칸 내용 복사
+- ※ 이 육안 확인은 헤드리스 CI에서 불가 → **릴리스 전 수동 점검 항목**으로 남긴다.
