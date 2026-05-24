@@ -6,7 +6,6 @@ import com.github.kwhat.jnativehook.mouse.NativeMouseEvent;
 import com.github.kwhat.jnativehook.mouse.NativeMouseListener;
 
 import javax.swing.JFrame;
-import javax.swing.SwingUtilities;
 import java.awt.AWTException;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -18,7 +17,7 @@ import java.util.logging.Logger;
 
 /**
  * 버튼 클릭으로 클립보드에 텍스트를 넣은 직후 사용자의 다음 좌클릭을 감지해
- * 해당 위치에 Ctrl+V 붙여넣기를 자동으로 수행하고 클립보드를 비운다.
+ * 해당 위치에 Ctrl+V 붙여넣기를 자동으로 수행한다.
  *
  * JNativeHook 초기화에 실패하면(예: 백신 차단, OS 미지원) 안전하게 비활성화 상태로
  * 동작하여 앱 자체는 평소대로 클립보드 복사 기능까지 정상 동작한다.
@@ -83,7 +82,7 @@ final class AutoPasteService {
         if (!armed.get()) return;
         if (isWithinAppWindow(e.getX(), e.getY())) return;
         if (!armed.compareAndSet(true, false)) return;
-        schedulePasteAndClear();
+        schedulePaste();
     }
 
     private boolean isWithinAppWindow(int x, int y) {
@@ -97,9 +96,10 @@ final class AutoPasteService {
         }
     }
 
-    private void schedulePasteAndClear() {
+    private void schedulePaste() {
         Thread t = new Thread(() -> {
-            sleepQuiet(80); // 클릭한 창이 포커스를 받을 시간
+            // 클릭한 창이 포커스를 확실히 받도록 대기. 80ms는 너무 짧아 간헐적으로 실패 → 200ms로 늘림.
+            sleepQuiet(200);
             Robot r;
             try {
                 r = new Robot();
@@ -110,8 +110,7 @@ final class AutoPasteService {
             r.keyPress(KeyEvent.VK_V);
             r.keyRelease(KeyEvent.VK_V);
             r.keyRelease(KeyEvent.VK_CONTROL);
-            sleepQuiet(200); // 붙여넣기 완료까지 대기 후 클립보드 비움
-            SwingUtilities.invokeLater(ClipboardService::clear);
+            // 클립보드 비우기 제거: 붙여넣기가 끝나기 전에 비워져 빈 값이 붙던 레이스를 없애 '무조건 붙여넣기'가 되게 함.
         }, "auto-paste");
         t.setDaemon(true);
         t.start();

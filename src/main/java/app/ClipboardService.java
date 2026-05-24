@@ -11,10 +11,6 @@ final class ClipboardService {
         setContents(text);
     }
 
-    static void clear() {
-        setContents("");
-    }
-
     private static void setContents(String text) {
         StringSelection data = new StringSelection(text);
         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
