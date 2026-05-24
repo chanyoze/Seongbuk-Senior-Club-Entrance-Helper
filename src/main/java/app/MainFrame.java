@@ -16,17 +16,12 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import java.io.IOException;
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
-import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.KeyboardFocusManager;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.List;
 
 /**
@@ -107,7 +102,7 @@ final class MainFrame extends JFrame {
         titles.setLayout(new BoxLayout(titles, BoxLayout.Y_AXIS));
         JLabel title = new JLabel(UiConstants.HEADER_TEXT);
         title.setFont(UiConstants.TITLE_FONT);
-        title.setForeground(Color.WHITE);
+        title.setForeground(UiConstants.ON_ACCENT);
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
         JLabel subtitle = new JLabel(UiConstants.HEADER_SUBTITLE);
         subtitle.setFont(UiConstants.SUBTITLE_FONT);
@@ -119,8 +114,8 @@ final class MainFrame extends JFrame {
 
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         buttons.setOpaque(false);
-        buttons.add(headerButton("정보", e -> openAbout()));
-        buttons.add(headerButton("항목 편집", e -> openEditor()));
+        buttons.add(UiFactory.ghostButton(UiConstants.icon("ⓘ", "정보"), e -> openAbout()));
+        buttons.add(UiFactory.ghostButton(UiConstants.icon("≡", "항목 편집"), e -> openEditor()));
         JPanel eastWrap = new JPanel(new BorderLayout());
         eastWrap.setOpaque(false);
         eastWrap.add(buttons, BorderLayout.NORTH);
@@ -128,22 +123,6 @@ final class MainFrame extends JFrame {
         header.add(titles, BorderLayout.WEST);
         header.add(eastWrap, BorderLayout.EAST);
         return header;
-    }
-
-    /** 헤더 우측의 액션 버튼(accent 배경 + 흰 글자) — 항목 편집/정보 공용 스타일. */
-    private JButton headerButton(String text, ActionListener al) {
-        JButton b = new JButton(text);
-        b.setFont(UiConstants.BTN_FONT);
-        b.setForeground(Color.WHITE);
-        b.setBackground(UiConstants.ACCENT_DARK);
-        b.setOpaque(true);
-        b.setFocusPainted(false);
-        b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        b.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(UiConstants.ACCENT_DARK),
-                new EmptyBorder(8, 14, 8, 14)));
-        b.addActionListener(al);
-        return b;
     }
 
     private void openAbout() {
@@ -208,9 +187,17 @@ final class MainFrame extends JFrame {
         previewArea = new JTextArea();
         previewArea.setLineWrap(true);
         previewArea.setFont(UiConstants.GLOBAL_FONT);
+        previewArea.setOpaque(false);                 // 둥근 흰 카드가 비치도록
 
         JScrollPane scroll = new JScrollPane(previewArea);
-        scroll.setBorder(BorderFactory.createLineBorder(UiConstants.BTN_BORDER));
+        scroll.setOpaque(false);
+        scroll.getViewport().setOpaque(false);
+        scroll.setBorder(null);
+
+        JPanel card = UiFactory.card();               // 둥근 흰 배경 카드
+        card.setLayout(new BorderLayout());
+        card.setBorder(new EmptyBorder(8, 10, 8, 10));
+        card.add(scroll, BorderLayout.CENTER);
 
         JLabel label = new JLabel(UiConstants.PREVIEW_TITLE);
         label.setForeground(UiConstants.TEXT_MUTED);
@@ -220,7 +207,7 @@ final class MainFrame extends JFrame {
         wrap.setBackground(UiConstants.BG);
         wrap.setPreferredSize(new Dimension(UiConstants.PREVIEW_WIDTH, 10));
         wrap.add(label, BorderLayout.NORTH);
-        wrap.add(scroll, BorderLayout.CENTER);
+        wrap.add(card, BorderLayout.CENTER);
         return wrap;
     }
 
@@ -243,10 +230,10 @@ final class MainFrame extends JFrame {
         customField = new JTextField(UiConstants.CUSTOM_FIELD_PLACEHOLDER);
         customField.setFont(UiConstants.GLOBAL_FONT);
         customField.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(UiConstants.FIELD_BORDER),
-                new EmptyBorder(8, 10, 8, 10)));
+                new RoundedBorder(UiConstants.FIELD_BORDER, UiConstants.BG, UiConstants.FIELD_ARC, 1),
+                new EmptyBorder(8, 12, 8, 12)));
 
-        JButton customBtn = makeButton(customLabel, true);
+        JButton customBtn = makeButton(UiConstants.icon("▶", customLabel), true);
         customBtn.setToolTipText(UiConstants.CUSTOM_BTN_TOOLTIP);
         customBtn.addActionListener(e -> copyAndArm(customField.getText()));
 
@@ -295,34 +282,16 @@ final class MainFrame extends JFrame {
     /** 앞 9개 버튼에 ①~⑨ 원문자 배지(accent 색·굵게)를 붙인 HTML 라벨. */
     private static String hotkeyLabel(int i, String text) {
         char circled = (char) (0x2460 + i);   // ① ② ... ⑨
-        return "<html><font color='#2D6CDF' size='+1'><b>" + circled + "</b></font>&nbsp; " + htmlEscape(text) + "</html>";
+        return "<html><font color='" + UiConstants.BADGE_HEX + "' size='+1'><b>" + circled
+                + "</b></font>&nbsp; " + htmlEscape(text) + "</html>";
     }
 
     private static String htmlEscape(String s) {
         return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
 
-    /** 플랫 스타일 버튼 + 호버 효과. accent=true면 강조색(사용자 지정 버튼). */
+    /** 둥근 모서리 버튼 + 호버 효과. accent=true면 강조색(사용자 지정 버튼). */
     private JButton makeButton(String text, boolean accent) {
-        final Color base = accent ? UiConstants.CUSTOM_BTN_BG : UiConstants.BTN_BG;
-        final Color hover = accent ? UiConstants.ACCENT_DARK : UiConstants.BTN_HOVER;
-        final Color fg = accent ? UiConstants.CUSTOM_BTN_FG : UiConstants.BTN_FG;
-        final Color border = accent ? UiConstants.CUSTOM_BTN_BG : UiConstants.BTN_BORDER;
-
-        JButton b = new JButton(text);
-        b.setFont(UiConstants.BTN_FONT);
-        b.setForeground(fg);
-        b.setBackground(base);
-        b.setOpaque(true);
-        b.setFocusPainted(false);
-        b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        b.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(border),
-                new EmptyBorder(10, 14, 10, 14)));
-        b.addMouseListener(new MouseAdapter() {
-            @Override public void mouseEntered(MouseEvent e) { b.setBackground(hover); }
-            @Override public void mouseExited(MouseEvent e) { b.setBackground(base); }
-        });
-        return b;
+        return accent ? UiFactory.accentButton(text, null) : UiFactory.neutralButton(text, null);
     }
 }

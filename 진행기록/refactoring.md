@@ -580,5 +580,14 @@ Docker/컨테이너 기반 CI/CD를 제대로 학습하기 위해, **별도 저�
 - 순수 함수 단위 테스트: `parseTagName` / `normalize`(v·V 제거) / `compareVersions`(자리수 보정·접미사 무시) → `UpdateCheckerTest` 7개.
 - 파일: 신규 `UpdateChecker`, `AboutDialog`, `UpdateCheckerTest`, `UiConstants`(메타데이터 + `appVersion`), `MainFrame`(헤더 `정보` 버튼 + `headerButton`/`openAbout`), `build.gradle`(버전·매니페스트).
 
+### 9.7 UI 디자인 개편 (브랜치 `feature/ui-redesign`)
+> 배치 1~6 기능 위에 시각적 완성도를 올린 작업. About(배치 6)과 분리해 별도 PR로 진행.
+
+- **둥근 모서리 디자인 + 공용 팩토리**: `UiFactory`로 둥근 버튼(accent/neutral/ghost)·둥근 카드를 한곳에서 생성 → 메인 창과 두 다이얼로그가 같은 스타일을 공유. 직접 페인팅(`fillRoundRect` + 안티앨리어싱), 롤오버 시 호버색. 입력칸은 `RoundedBorder`(모서리 바깥을 배경색으로 덮어 잔상 제거)로 둥글게.
+- **다이얼로그 현대화**: `AboutDialog`는 제목/버전 + 정보 카드(제작자·설명·GitHub 링크) + 업데이트 영역 + 닫기로 재구성. `ProgramEditorDialog`는 리스트를 둥근 카드에 담고 선택 행 하이라이트·행 높이↑, 버튼 전부 둥근 스타일.
+- **색상**: 베이비핑크 등 여러 시안을 검토했으나 최종적으로 **기존 파란 accent 유지**로 결정(메인 화면 가독성·정체성). `UiConstants`에 `ACCENT_DEEP`(흰 배경 위 글자)·`ON_ACCENT`(accent 면 위 글자) 추가해 색 사용을 명시화.
+- **깨지지 않는 아이콘**: `UiConstants.icon(glyph, text)` — 폰트(`맑은 고딕`)가 `canDisplayUpTo`로 **표시 가능한 글리프만** 라벨에 붙이고, 불가하면 생략 → 환경에 상관없이 두부(□) 깨짐 원천 차단. 적용: `ⓘ 정보`, `≡ 항목 편집`, 사용자 지정 `▶`, 업데이트 `↻`, GitHub `↗`, 다운로드 `↓`, 편집창 `＋ － ▲ ▼ ✓ ✕`. (배치 5의 `✎`가 글리프 부재로 깨지던 문제를 일반화해 해결.)
+- 파일: 신규 `UiFactory`, `RoundedBorder` / 수정 `MainFrame`·`AboutDialog`·`ProgramEditorDialog`·`UiConstants`.
+
 → 다음: v1.3 배치 전체를 묶어 태그 `v1.3.0`으로 릴리스(빌드는 `1.3.0`으로 이미 상향).
 
