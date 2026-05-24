@@ -1,9 +1,9 @@
 name: Release
 
-# 버전 태그(v1.0.0 등)를 push할 때만 실행 → 의도적인 릴리스
+# 버전 태그(v1.0.0, V1.0.0 등)를 push할 때만 실행 → 의도적인 릴리스. 대소문자 v 모두 허용.
 on:
   push:
-    tags: [ 'v*' ]
+    tags: [ 'v*', 'V*' ]
 
 permissions:
   contents: write   # GitHub Release 생성 및 자산(zip) 업로드 권한
