@@ -18,7 +18,6 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Frame;
-import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,22 +42,29 @@ final class ProgramEditorDialog extends JDialog {
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         list.setFont(UiConstants.GLOBAL_FONT);
         list.setVisibleRowCount(10);
+        list.setOpaque(false);
+        list.setFixedCellHeight(30);
+        list.setForeground(UiConstants.BTN_FG);
+        list.setSelectionBackground(UiConstants.BTN_HOVER);   // 연분홍 선택
+        list.setSelectionForeground(UiConstants.ON_ACCENT);
+        list.setBorder(new EmptyBorder(4, 8, 4, 8));
 
         JPanel content = new JPanel(new BorderLayout(UiConstants.GAP, UiConstants.GAP));
         content.setBackground(UiConstants.BG);
         content.setBorder(new EmptyBorder(UiConstants.PAD, UiConstants.PAD, UiConstants.PAD, UiConstants.PAD));
 
         JLabel hint = new JLabel("버튼에 표시할 항목 ('사용자 지정'은 항상 맨 끝에 유지됩니다)");
+        hint.setFont(UiConstants.SUBTITLE_FONT);
         hint.setForeground(UiConstants.TEXT_MUTED);
-        hint.setBorder(new EmptyBorder(0, 0, UiConstants.GAP, 0));
+        hint.setBorder(new EmptyBorder(0, 2, UiConstants.GAP, 0));
 
         content.add(hint, BorderLayout.NORTH);
-        content.add(new JScrollPane(list), BorderLayout.CENTER);
+        content.add(buildListCard(), BorderLayout.CENTER);
         content.add(buildSideButtons(), BorderLayout.EAST);
         content.add(buildBottomButtons(), BorderLayout.SOUTH);
 
         setContentPane(content);
-        setSize(440, 380);
+        setSize(460, 400);
         setLocationRelativeTo(owner);
     }
 
@@ -76,49 +82,51 @@ final class ProgramEditorDialog extends JDialog {
         return out;
     }
 
+    /** 리스트를 둥근 흰 카드 안에 넣어 부드럽게. */
+    private JComponent buildListCard() {
+        JScrollPane scroll = new JScrollPane(list);
+        scroll.setBorder(null);
+        scroll.setOpaque(false);
+        scroll.getViewport().setOpaque(false);
+
+        JPanel card = UiFactory.card();
+        card.setLayout(new BorderLayout());
+        card.setBorder(new EmptyBorder(6, 6, 6, 6));
+        card.add(scroll, BorderLayout.CENTER);
+        return card;
+    }
+
     private JComponent buildSideButtons() {
         JPanel side = new JPanel();
-        side.setBackground(UiConstants.BG);
+        side.setOpaque(false);
         side.setLayout(new BoxLayout(side, BoxLayout.Y_AXIS));
-        side.add(actionButton("＋ 추가", e -> addItem()));
-        side.add(Box.createVerticalStrut(6));
-        side.add(actionButton("－ 삭제", e -> removeSelected()));
-        side.add(Box.createVerticalStrut(6));
-        side.add(actionButton("▲ 위로", e -> move(-1)));
-        side.add(Box.createVerticalStrut(6));
-        side.add(actionButton("▼ 아래로", e -> move(1)));
+        side.setBorder(new EmptyBorder(0, UiConstants.GAP, 0, 0));
+        side.add(sideButton(UiConstants.icon("＋", "추가"), e -> addItem()));
+        side.add(Box.createVerticalStrut(8));
+        side.add(sideButton(UiConstants.icon("－", "삭제"), e -> removeSelected()));
+        side.add(Box.createVerticalStrut(8));
+        side.add(sideButton(UiConstants.icon("▲", "위로"), e -> move(-1)));
+        side.add(Box.createVerticalStrut(8));
+        side.add(sideButton(UiConstants.icon("▼", "아래로"), e -> move(1)));
         return side;
     }
 
     private JComponent buildBottomButtons() {
         JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT, UiConstants.GAP, 0));
-        bottom.setBackground(UiConstants.BG);
-
-        JButton cancel = new JButton("취소");
-        cancel.addActionListener(e -> dispose());
-
-        JButton save = new JButton("저장");
-        save.setForeground(UiConstants.CUSTOM_BTN_FG);
-        save.setBackground(UiConstants.CUSTOM_BTN_BG);
-        save.setOpaque(true);
-        save.setFocusPainted(false);
-        save.addActionListener(e -> {
+        bottom.setOpaque(false);
+        bottom.setBorder(new EmptyBorder(UiConstants.GAP, 0, 0, 0));
+        bottom.add(UiFactory.neutralButton(UiConstants.icon("✕", "취소"), e -> dispose()));
+        bottom.add(UiFactory.accentButton(UiConstants.icon("✓", "저장"), e -> {
             saved = true;
             dispose();
-        });
-
-        bottom.add(cancel);
-        bottom.add(save);
+        }));
         return bottom;
     }
 
-    private JButton actionButton(String text, ActionListener al) {
-        JButton b = new JButton(text);
-        b.setFont(UiConstants.BTN_FONT);
-        b.setFocusPainted(false);
+    private JButton sideButton(String text, java.awt.event.ActionListener al) {
+        JButton b = UiFactory.neutralButton(text, al);
         b.setAlignmentX(Component.CENTER_ALIGNMENT);
-        b.setMaximumSize(new Dimension(120, 34));
-        b.addActionListener(al);
+        b.setMaximumSize(new Dimension(130, 38));
         return b;
     }
 

@@ -32,19 +32,30 @@ final class UiConstants {
     // 팔레트
     static final Color ACCENT = new Color(0x2D6CDF);
     static final Color ACCENT_DARK = new Color(0x1F53B8);
+    static final Color ACCENT_DEEP = new Color(0x2D6CDF);   // 흰 배경 위 글자(배지·링크·다이얼로그 제목)
+    static final Color ON_ACCENT = Color.WHITE;             // accent 면 위 글자색
     static final Color BG = new Color(0xF4F6FA);
     static final Color HEADER_SUBTITLE_FG = new Color(0xDCE7FF);
     static final Color TEXT_MUTED = new Color(0x5B6675);
     static final Color BTN_BG = Color.WHITE;
     static final Color BTN_FG = new Color(0x22303F);
     static final Color BTN_HOVER = new Color(0xEAF0FB);
-    static final Color BTN_BORDER = new Color(0xD3DAE6);
+    static final Color BTN_BORDER = new Color(0xDDE3EE);
     static final Color CUSTOM_BTN_BG = ACCENT;
-    static final Color CUSTOM_BTN_FG = Color.WHITE;
+    static final Color CUSTOM_BTN_FG = ON_ACCENT;
     static final Color FIELD_BORDER = new Color(0xC4CCDA);
     static final Color STATUS_BG = new Color(0xECEFF4);
     static final Color STATUS_ON = new Color(0x1E8E3E);
     static final Color STATUS_OFF = new Color(0xC0392B);
+    static final String BADGE_HEX = "#2D6CDF";             // ①~⑨ 단축키 배지 색
+
+    /**
+     * 폰트(맑은 고딕)가 표시할 수 있는 글리프만 아이콘으로 붙인다.
+     * 표시 불가하면(다른 환경 등) 아이콘을 생략해 두부(□) 깨짐을 원천 차단.
+     */
+    static String icon(String glyph, String text) {
+        return GLOBAL_FONT.canDisplayUpTo(glyph) == -1 ? glyph + "  " + text : text;
+    }
 
     // 폰트
     static final String FONT_FAMILY = "맑은 고딕";
@@ -53,10 +64,12 @@ final class UiConstants {
     static final Font SUBTITLE_FONT = new Font(FONT_FAMILY, Font.PLAIN, 12);
     static final Font BTN_FONT = new Font(FONT_FAMILY, Font.PLAIN, 14);
 
-    // 간격
+    // 간격 / 둥글기
     static final int GAP = 10;
     static final int PAD = 16;
     static final int PREVIEW_WIDTH = 240;
+    static final int ARC = 18;          // 버튼 모서리 둥글기
+    static final int FIELD_ARC = 14;    // 입력칸·미리보기 카드 둥글기
 
     // 문구
     static final String CUSTOM_FIELD_PLACEHOLDER = "직접 입력...";
