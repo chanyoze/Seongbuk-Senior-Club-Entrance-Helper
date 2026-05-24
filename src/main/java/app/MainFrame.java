@@ -13,7 +13,6 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
-import javax.swing.text.JTextComponent;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -37,6 +36,7 @@ final class MainFrame extends JFrame {
     private final AppConfig config;
     private AutoPasteService autoPaste;
     private JTextArea previewArea;
+    private JTextField customField;
     private JLabel hookStatusLabel;
     private JLabel lastCopiedLabel;
 
@@ -79,8 +79,8 @@ final class MainFrame extends JFrame {
                 return false;
             }
             Component focus = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
-            if (focus instanceof JTextComponent) {
-                return false;   // 텍스트 입력 중 → 숫자가 그대로 들어가게 둠
+            if (focus == customField) {
+                return false;   // 사용자 지정 입력칸에 타이핑 중일 때만 숫자 양보 (미리보기 등에선 단축키 유지)
             }
             int idx = e.getKeyCode() - KeyEvent.VK_1;   // VK_1..VK_9 → 0..8
             if (idx >= 0 && idx < 9 && idx < gridCount) {
@@ -176,17 +176,17 @@ final class MainFrame extends JFrame {
         List<String> names = config.programNames();
         String customLabel = names.isEmpty() ? "사용자 지정" : names.get(names.size() - 1);
 
-        JTextField field = new JTextField(UiConstants.CUSTOM_FIELD_PLACEHOLDER);
-        field.setFont(UiConstants.GLOBAL_FONT);
-        field.setBorder(BorderFactory.createCompoundBorder(
+        customField = new JTextField(UiConstants.CUSTOM_FIELD_PLACEHOLDER);
+        customField.setFont(UiConstants.GLOBAL_FONT);
+        customField.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(UiConstants.FIELD_BORDER),
                 new EmptyBorder(8, 10, 8, 10)));
 
         JButton customBtn = makeButton(customLabel, true);
         customBtn.setToolTipText(UiConstants.CUSTOM_BTN_TOOLTIP);
-        customBtn.addActionListener(e -> copyAndArm(field.getText()));
+        customBtn.addActionListener(e -> copyAndArm(customField.getText()));
 
-        row.add(field, BorderLayout.CENTER);
+        row.add(customField, BorderLayout.CENTER);
         row.add(customBtn, BorderLayout.EAST);
         return row;
     }
