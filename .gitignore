@@ -1,11 +1,12 @@
-# Eclipse / Java build output
-/bin/
-
-# Build intermediates (build.ps1 산출)
-/staging/
-/dist/
-/manifest.txt
+# Gradle
+/.gradle/
+/build/
 
 # 원본 압축 및 옛 Launch4j exe (자바 의존, v2에서 대체됨)
 /Seongbuk-Senior-Club-Entrance-Helper-master.zip
 /출입도우미.exe
+
+# OS / 편집기 노이즈
+Thumbs.db
+.DS_Store
+desktop.ini

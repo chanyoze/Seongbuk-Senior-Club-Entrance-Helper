@@ -1,0 +1,80 @@
+plugins {
+    id 'application'
+}
+
+group = 'app'
+version = '1.1.0'
+
+java {
+    toolchain {
+        // 설치된 JDK 경로를 직접 박지 않고 버전만 선언 → Gradle이 알아서 탐색
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // 기존 lib/jnativehook-2.2.2.jar 직접 커밋을 대체 (Maven Central에서 자동 다운로드)
+    implementation 'com.github.kwhat:jnativehook:2.2.2'
+}
+
+application {
+    mainClass = 'app.App'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+// config.properties(루트의 배포용 설정 파일)를 찾도록 run 작업 디렉토리를 프로젝트 루트로 고정
+tasks.named('run') {
+    workingDir = projectDir
+}
+
+// ---------------------------------------------------------------------------
+// jpackage: 내장 JRE를 포함한 자바-없는 네이티브 app-image(.exe) 생성
+//   - 기존 build.ps1의 jpackage 단계를 Gradle로 옮긴 것
+//   - 산출물: build/jpackage/<앱이름>/<앱이름>.exe
+//   - 본격 배포 자동화(CD)는 GitHub Actions 단계에서 다듬을 예정
+// ---------------------------------------------------------------------------
+def appName = file('appname.txt').exists() ? file('appname.txt').getText('UTF-8').trim() : 'EntranceHelper'
+def isWindows = System.getProperty('os.name').toLowerCase().contains('win')
+
+tasks.register('jpackageImage', Exec) {
+    group = 'distribution'
+    description = 'jpackage로 내장 JRE 포함 네이티브 app-image(.exe) 생성'
+    dependsOn 'installDist'
+
+    def jpackageBin = isWindows ? 'bin/jpackage.exe' : 'bin/jpackage'
+    def jpackage = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(25)
+    }.get().metadata.installationPath.file(jpackageBin).asFile
+
+    def libDir = layout.buildDirectory.dir("install/${rootProject.name}/lib").get().asFile
+    def destDir = layout.buildDirectory.dir('jpackage').get().asFile
+    def mainJar = "${rootProject.name}-${version}.jar"
+
+    doFirst { delete destDir }
+
+    commandLine jpackage.absolutePath,
+        '--name', appName,
+        '--input', libDir.absolutePath,
+        '--main-jar', mainJar,
+        '--main-class', 'app.App',
+        '--type', 'app-image',
+        '--dest', destDir.absolutePath,
+        '--app-version', version,
+        '--vendor', 'Refactored',
+        '--add-modules', 'java.base,java.desktop,java.logging'
+
+    doLast {
+        copy {
+            from 'config.properties'
+            into new File(destDir, appName)
+        }
+        println "exe: ${new File(new File(destDir, appName), appName + '.exe')}"
+    }
+}

@@ -1,0 +1,11 @@
+# Gradle Wrapper 스크립트는 줄바꿈이 정확해야 동작함
+gradlew      text eol=lf
+*.bat        text eol=crlf
+*.cmd        text eol=crlf
+
+# 바이너리는 변환/정규화 금지
+*.jar  binary
+*.zip  binary
+*.exe  binary
+*.ico  binary
+*.dll  binary
