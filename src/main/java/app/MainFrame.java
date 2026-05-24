@@ -19,6 +19,8 @@ import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.KeyboardFocusManager;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
@@ -34,6 +36,7 @@ final class MainFrame extends JFrame {
     private final AppConfig config;
     private AutoPasteService autoPaste;
     private JTextArea previewArea;
+    private JTextField customField;
     private JLabel hookStatusLabel;
     private JLabel lastCopiedLabel;
 
@@ -43,6 +46,7 @@ final class MainFrame extends JFrame {
         add(buildHeader(), BorderLayout.NORTH);
         add(buildCenter(), BorderLayout.CENTER);
         add(buildBottom(), BorderLayout.SOUTH);
+        setupHotkeys();
     }
 
     void attachAutoPaste(AutoPasteService service) {
@@ -64,6 +68,27 @@ final class MainFrame extends JFrame {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         getContentPane().setBackground(UiConstants.BG);
+    }
+
+    /** 숫자키 1~9로 앞 9개 항목 선택(복사+무장). 단, 입력칸/미리보기에 타이핑 중이면 무시해 숫자 입력을 보존한다. */
+    private void setupHotkeys() {
+        List<String> names = config.programNames();
+        int gridCount = Math.max(0, names.size() - 1);
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(e -> {
+            if (e.getID() != KeyEvent.KEY_PRESSED) {
+                return false;
+            }
+            Component focus = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+            if (focus == customField) {
+                return false;   // 사용자 지정 입력칸에 타이핑 중일 때만 숫자 양보 (미리보기 등에선 단축키 유지)
+            }
+            int idx = e.getKeyCode() - KeyEvent.VK_1;   // VK_1..VK_9 → 0..8
+            if (idx >= 0 && idx < 9 && idx < gridCount) {
+                copyAndArm(names.get(idx));
+                return true;   // 소비
+            }
+            return false;
+        });
     }
 
     private JComponent buildHeader() {
@@ -107,7 +132,8 @@ final class MainFrame extends JFrame {
         int gridCount = Math.max(0, names.size() - 1);
         for (int i = 0; i < gridCount; i++) {
             final String text = names.get(i);
-            JButton b = makeButton(text, false);
+            String label = (i < 9) ? hotkeyLabel(i, text) : text;   // 앞 9개는 ①~⑨ 단축키 배지
+            JButton b = makeButton(label, false);
             b.addActionListener(e -> copyAndArm(text));
             grid.add(b);
         }
@@ -150,17 +176,17 @@ final class MainFrame extends JFrame {
         List<String> names = config.programNames();
         String customLabel = names.isEmpty() ? "사용자 지정" : names.get(names.size() - 1);
 
-        JTextField field = new JTextField(UiConstants.CUSTOM_FIELD_PLACEHOLDER);
-        field.setFont(UiConstants.GLOBAL_FONT);
-        field.setBorder(BorderFactory.createCompoundBorder(
+        customField = new JTextField(UiConstants.CUSTOM_FIELD_PLACEHOLDER);
+        customField.setFont(UiConstants.GLOBAL_FONT);
+        customField.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(UiConstants.FIELD_BORDER),
                 new EmptyBorder(8, 10, 8, 10)));
 
         JButton customBtn = makeButton(customLabel, true);
         customBtn.setToolTipText(UiConstants.CUSTOM_BTN_TOOLTIP);
-        customBtn.addActionListener(e -> copyAndArm(field.getText()));
+        customBtn.addActionListener(e -> copyAndArm(customField.getText()));
 
-        row.add(field, BorderLayout.CENTER);
+        row.add(customField, BorderLayout.CENTER);
         row.add(customBtn, BorderLayout.EAST);
         return row;
     }
@@ -199,6 +225,16 @@ final class MainFrame extends JFrame {
         if (s == null) return "";
         s = s.replace("\n", " ").trim();
         return s.length() > 20 ? s.substring(0, 20) + "…" : s;
+    }
+
+    /** 앞 9개 버튼에 ①~⑨ 원문자 배지(accent 색·굵게)를 붙인 HTML 라벨. */
+    private static String hotkeyLabel(int i, String text) {
+        char circled = (char) (0x2460 + i);   // ① ② ... ⑨
+        return "<html><font color='#2D6CDF' size='+1'><b>" + circled + "</b></font>&nbsp; " + htmlEscape(text) + "</html>";
+    }
+
+    private static String htmlEscape(String s) {
+        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
 
     /** 플랫 스타일 버튼 + 호버 효과. accent=true면 강조색(사용자 지정 버튼). */

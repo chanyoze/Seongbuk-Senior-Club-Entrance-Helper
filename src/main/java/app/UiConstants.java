@@ -10,7 +10,7 @@ final class UiConstants {
     // 창 / 문구
     static final String WINDOW_TITLE = "출입도우미 v2 made by 이찬호";
     static final String HEADER_TEXT = "출입관리 도우미";
-    static final String HEADER_SUBTITLE = "버튼을 누른 뒤, 입력할 곳을 클릭하면 자동으로 붙여넣습니다";
+    static final String HEADER_SUBTITLE = "버튼(또는 숫자키 1~9)을 누른 뒤, 입력할 곳을 클릭하면 자동으로 붙여넣습니다";
     static final int FRAME_WIDTH = 720;
     static final int FRAME_HEIGHT = 640;
     static final int FRAME_MIN_WIDTH = 560;
