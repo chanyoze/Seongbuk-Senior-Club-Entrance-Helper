@@ -16,8 +16,8 @@ Seongbuk-Senior-Club-Entrance-Helper-2/
     ├── gradle.md              Gradle 마이그레이션 (빌드 표준화)
     ├── tests.md               테스트 (JUnit 5 단위 테스트)
     ├── ci.md                  CI (GitHub Actions 자동 빌드·테스트)
-    ├── cd.md                  CD (태그 push → exe → Releases) — 설계 기록
-    └── (예정) pages.md ...
+    ├── cd.md                  CD (태그 push → exe → Releases 자동 배포)
+    └── pages.md               배포 페이지 (GitHub Pages 다운로드)
 ```
 
 ## 역할 구분
@@ -43,7 +43,7 @@ Seongbuk-Senior-Club-Entrance-Helper-2/
 | 2 | 테스트 (JUnit) | [tests.md](tests.md) | ✅ 완료 |
 | 3 | CI (GitHub Actions) | [ci.md](ci.md) | ✅ 완료 (PR에서 첫 실행 확인) |
 | 4 | CD (jpackage → Releases) | [cd.md](cd.md) | ✅ 완료 (v1.1.0 발행, EntranceHelper.zip 25.9MB) |
-| 5 | 배포 페이지 (GitHub Pages) | (예정) pages.md | ⬜ |
+| 5 | 배포 페이지 (GitHub Pages) | [pages.md](pages.md) | 🔄 페이지 작성 (Pages 활성화 대기) |
 | — | 코드 리팩토링 (선행 작업) | [refactoring.md](refactoring.md) | ✅ 완료 |
 
 ## 참고
