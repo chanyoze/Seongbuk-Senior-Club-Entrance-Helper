@@ -20,8 +20,10 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.KeyboardFocusManager;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -115,24 +117,37 @@ final class MainFrame extends JFrame {
         titles.add(Box.createVerticalStrut(4));
         titles.add(subtitle);
 
-        JButton edit = new JButton("항목 편집");
-        edit.setFont(UiConstants.BTN_FONT);
-        edit.setForeground(Color.WHITE);
-        edit.setBackground(UiConstants.ACCENT_DARK);
-        edit.setOpaque(true);
-        edit.setFocusPainted(false);
-        edit.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        edit.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(UiConstants.ACCENT_DARK),
-                new EmptyBorder(8, 14, 8, 14)));
-        edit.addActionListener(e -> openEditor());
+        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        buttons.setOpaque(false);
+        buttons.add(headerButton("정보", e -> openAbout()));
+        buttons.add(headerButton("항목 편집", e -> openEditor()));
         JPanel eastWrap = new JPanel(new BorderLayout());
         eastWrap.setOpaque(false);
-        eastWrap.add(edit, BorderLayout.NORTH);
+        eastWrap.add(buttons, BorderLayout.NORTH);
 
         header.add(titles, BorderLayout.WEST);
         header.add(eastWrap, BorderLayout.EAST);
         return header;
+    }
+
+    /** 헤더 우측의 액션 버튼(accent 배경 + 흰 글자) — 항목 편집/정보 공용 스타일. */
+    private JButton headerButton(String text, ActionListener al) {
+        JButton b = new JButton(text);
+        b.setFont(UiConstants.BTN_FONT);
+        b.setForeground(Color.WHITE);
+        b.setBackground(UiConstants.ACCENT_DARK);
+        b.setOpaque(true);
+        b.setFocusPainted(false);
+        b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        b.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(UiConstants.ACCENT_DARK),
+                new EmptyBorder(8, 14, 8, 14)));
+        b.addActionListener(al);
+        return b;
+    }
+
+    private void openAbout() {
+        new AboutDialog(this).setVisible(true);
     }
 
     private void openEditor() {

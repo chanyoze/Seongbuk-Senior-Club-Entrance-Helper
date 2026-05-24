@@ -11,6 +11,19 @@ final class UiConstants {
     static final String WINDOW_TITLE = "출입도우미 v2 made by 이찬호";
     static final String HEADER_TEXT = "출입관리 도우미";
     static final String HEADER_SUBTITLE = "버튼(또는 숫자키 1~9)을 누른 뒤, 입력할 곳을 클릭하면 자동으로 붙여넣습니다";
+
+    // 앱 메타데이터 (정보 다이얼로그 / 업데이트 확인)
+    static final String AUTHOR = "이찬호";
+    static final String ABOUT_DESC = "성북노인종합복지관 출입 기록용 키워드 복사·자동 붙여넣기 도우미";
+    static final String GITHUB_URL = "https://github.com/chanyoze/Seongbuk-Senior-Club-Entrance-Helper";
+    /** jar 매니페스트(Implementation-Version)가 없을 때(개발 실행) 쓰는 폴백. build.gradle version과 맞춘다. */
+    static final String FALLBACK_VERSION = "1.3.0";
+
+    /** 실행 중인 앱 버전: jar 매니페스트 우선, 없으면(개발 실행) 폴백. */
+    static String appVersion() {
+        String v = UiConstants.class.getPackage().getImplementationVersion();
+        return (v != null && !v.isBlank()) ? v : FALLBACK_VERSION;
+    }
     static final int FRAME_WIDTH = 720;
     static final int FRAME_HEIGHT = 640;
     static final int FRAME_MIN_WIDTH = 560;

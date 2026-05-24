@@ -570,10 +570,15 @@ Docker/컨테이너 기반 CI/CD를 제대로 학습하기 위해, **별도 저�
 - **단축키도 편집 결과 반영**: `setupHotkeys`가 매 입력마다 `config.programNames()`를 **현재 값으로 다시 읽도록** 변경(이전엔 시작 시점 목록을 캡처해 편집 후 어긋남).
 - 파일: 신규 `ProgramEditorDialog`, `AppConfig`(`save` 추가), `MainFrame`(헤더에 편집 버튼 + `openEditor`/`reloadPrograms`, `setupHotkeys` 최신값 읽기).
 
-### 9.6 예정 (배치 6)
-| 배치 | 기능 |
-|---|---|
-| 6 | About 다이얼로그 + 업데이트 확인 (GitHub API) |
+### 9.6 정보(About) + 업데이트 확인 (배치 6 · 브랜치 `feature/about-update`)
+- 헤더 우측에 **`정보`** 버튼 추가(기존 `항목 편집`과 같은 스타일, `headerButton` 공용 헬퍼로 통일).
+- **정보 다이얼로그**(`AboutDialog`): 앱 이름·**버전**·제작자·설명 + **GitHub 저장소 링크**(클릭 시 `Desktop.browse`로 브라우저 열기).
+- **업데이트 확인**: GitHub Releases API(`/releases/latest`)로 최신 태그 조회 → 현재 버전과 비교.
+  - **`SwingWorker`로 백그라운드 실행**(네트워크가 EDT를 멈추지 않게), "확인 중..." → 결과 표시. 새 버전이 있으면 **다운로드 페이지 링크** 노출, 최신이면 초록, 실패는 빨강.
+  - JSON 라이브러리 없이 `tag_name`만 정규식으로 추출(필드 하나라 충분).
+- **버전 소스**: `build.gradle` `version`을 **jar 매니페스트(`Implementation-Version`)** 에 기록 → `UiConstants.appVersion()`이 런타임에 읽음. 매니페스트가 없는 개발 실행은 `FALLBACK_VERSION`으로 대체. `build.gradle` 버전을 **`1.3.0`** 으로 상향.
+- 순수 함수 단위 테스트: `parseTagName` / `normalize`(v·V 제거) / `compareVersions`(자리수 보정·접미사 무시) → `UpdateCheckerTest` 7개.
+- 파일: 신규 `UpdateChecker`, `AboutDialog`, `UpdateCheckerTest`, `UiConstants`(메타데이터 + `appVersion`), `MainFrame`(헤더 `정보` 버튼 + `headerButton`/`openAbout`), `build.gradle`(버전·매니페스트).
 
-→ 완료 후 `build.gradle` 버전 `1.3.0` + 태그 `v1.3.0`으로 릴리스.
+→ 다음: v1.3 배치 전체를 묶어 태그 `v1.3.0`으로 릴리스(빌드는 `1.3.0`으로 이미 상향).
 
