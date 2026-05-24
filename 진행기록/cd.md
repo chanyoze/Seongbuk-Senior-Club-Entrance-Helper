@@ -68,3 +68,48 @@ CI(3단계)는 "코드가 통과하는지"를 본다. CD는 한 발 더 나가 *
 - 최신 Release는 `releases/latest/download/...` 고정 URL로 받을 수 있음 → **5단계(GitHub Pages 다운로드 버튼)의 기반**.
 - exe 빌드는 CI(ubuntu)와 분리해 CD에서 windows 러너로 처리.
 - 첫 릴리스 검증: `feature/cd` 머지 후 `v2`에 `v1.1.0` 태그를 push하면 Actions가 돌며 Releases에 zip이 올라온다.
+
+## 6. 릴리스 내는 법 (수동, 상세)
+
+### "태그를 push한다"가 무슨 뜻?
+- **커밋** = 코드의 특정 시점 스냅샷. **브랜치** = 그 줄기의 최신을 가리키는 (움직이는) 포인터.
+- **태그(tag)** = 특정 커밋에 붙이는 **고정 이름표.** 움직이지 않음. "이 커밋 = `v1.1.0` 릴리스"를 표시.
+- `git tag`로 만들면 태그는 **내 컴퓨터에만** 존재한다. `git push`로 **GitHub에 올려야(=push)** 원격에도 생긴다.
+- `release.yml`은 `on: push: tags: ['v*']` → **태그가 GitHub에 push되는 순간** 발동한다. (로컬 태그만으론 아무 일도 안 일어남)
+
+### 방법 A — 터미널 (권장, 가장 확실)
+1. 새 PowerShell 창(또는 Antigravity 하단 터미널)에서 프로젝트로 이동:
+   ```powershell
+   cd C:\study\Seongbuk-Senior-Club-Entrance-Helper-2
+   ```
+2. v2 최신 상태로 (태그는 "지금 위치한 커밋"에 붙으므로 v2 최신이어야 함):
+   ```powershell
+   git checkout v2
+   git pull
+   ```
+3. 태그 생성 (annotated = 설명 포함):
+   ```powershell
+   git tag -a v1.1.0 -m "출입도우미 v1.1.0 첫 릴리스"
+   ```
+   → 아직 내 컴퓨터에만 존재
+4. 태그를 GitHub로 push:
+   ```powershell
+   git push origin v1.1.0
+   ```
+   → 이 순간 Release 워크플로 발동
+5. 확인: GitHub → **Actions 탭**(Release 실행, 몇 분) → 끝나면 **Releases 탭**에 `v1.1.0` + `출입도우미.zip`
+
+### 방법 B — Antigravity(VS Code 계열) GUI
+- `Ctrl+Shift+P` → **`Git: Create Tag`** → 이름 `v1.1.0`, 메시지 입력
+- `Ctrl+Shift+P` → **`Git: Push (Follow Tags)`** (또는 `Git: Push Tags`)
+- (태그 조작은 GUI가 다소 숨겨져 있어 — 확실한 건 방법 A)
+
+### 잘못했을 때 되돌리기
+```powershell
+git tag -d v1.1.0                  # 로컬 태그 삭제
+git push origin --delete v1.1.0    # 원격(GitHub) 태그 삭제
+```
+- 이미 Release가 만들어졌으면 GitHub Releases 화면에서 그 릴리스도 삭제.
+
+### 다음 버전 올릴 때
+- `build.gradle`의 `version`을 새 값(예: `1.2.0`)으로 올리고 → 그에 맞는 태그(`v1.2.0`)를 위 절차로 push.
