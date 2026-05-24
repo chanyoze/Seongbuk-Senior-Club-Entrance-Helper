@@ -7,6 +7,7 @@ import com.github.kwhat.jnativehook.mouse.NativeMouseListener;
 
 import javax.swing.JFrame;
 import java.awt.AWTException;
+import java.awt.Component;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Robot;
@@ -25,17 +26,19 @@ import java.util.logging.Logger;
 final class AutoPasteService {
 
     private final JFrame appWindow;
+    private final Component inWindowTarget;   // 창 안이어도 붙여넣기를 허용할 컴포넌트(미리보기 영역). null이면 모든 창 안 클릭 무시.
     private final AtomicBoolean armed = new AtomicBoolean(false);
     private final AtomicBoolean enabled = new AtomicBoolean(false);
 
-    private AutoPasteService(JFrame appWindow) {
+    private AutoPasteService(JFrame appWindow, Component inWindowTarget) {
         this.appWindow = appWindow;
+        this.inWindowTarget = inWindowTarget;
     }
 
-    static AutoPasteService initialize(JFrame appWindow) {
+    static AutoPasteService initialize(JFrame appWindow, Component inWindowTarget) {
         suppressJNativeHookLogging();
 
-        AutoPasteService svc = new AutoPasteService(appWindow);
+        AutoPasteService svc = new AutoPasteService(appWindow, inWindowTarget);
         try {
             GlobalScreen.registerNativeHook();
             GlobalScreen.addNativeMouseListener(new NativeMouseListener() {
@@ -80,7 +83,8 @@ final class AutoPasteService {
     private void onMousePressed(NativeMouseEvent e) {
         if (e.getButton() != NativeMouseEvent.BUTTON1) return;
         if (!armed.get()) return;
-        if (isWithinAppWindow(e.getX(), e.getY())) return;
+        // 창 밖이면 OK. 창 안이면 미리보기 영역 위 클릭만 허용(자체 테스트용), 그 외 창 안 클릭은 무시.
+        if (isWithinAppWindow(e.getX(), e.getY()) && !isOnComponent(inWindowTarget, e.getX(), e.getY())) return;
         if (!armed.compareAndSet(true, false)) return;
         schedulePaste();
     }
@@ -90,6 +94,17 @@ final class AutoPasteService {
         try {
             Point loc = appWindow.getLocationOnScreen();
             Rectangle bounds = new Rectangle(loc, appWindow.getSize());
+            return bounds.contains(x, y);
+        } catch (Exception ex) {
+            return false;
+        }
+    }
+
+    private static boolean isOnComponent(Component c, int x, int y) {
+        if (c == null || !c.isShowing()) return false;
+        try {
+            Point loc = c.getLocationOnScreen();
+            Rectangle bounds = new Rectangle(loc, c.getSize());
             return bounds.contains(x, y);
         } catch (Exception ex) {
             return false;

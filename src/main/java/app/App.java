@@ -14,7 +14,7 @@ public final class App {
         AppConfig config = AppConfig.load();
         SwingUtilities.invokeLater(() -> {
             MainFrame frame = new MainFrame(config);
-            AutoPasteService autoPaste = AutoPasteService.initialize(frame);
+            AutoPasteService autoPaste = AutoPasteService.initialize(frame, frame.previewArea());
             frame.attachAutoPaste(autoPaste);
             Runtime.getRuntime().addShutdownHook(new Thread(autoPaste::shutdown, "autopaste-shutdown"));
             frame.setVisible(true);
