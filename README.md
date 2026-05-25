@@ -1,4 +1,4 @@
-# Seongbuk-Senior-Club-Entrance-Helper
+# Senior-Club-Entrance-Helper
 
 [![CI](https://github.com/chanyoze/Seongbuk-Senior-Club-Entrance-Helper/actions/workflows/ci.yml/badge.svg)](https://github.com/chanyoze/Seongbuk-Senior-Club-Entrance-Helper/actions/workflows/ci.yml)
 
