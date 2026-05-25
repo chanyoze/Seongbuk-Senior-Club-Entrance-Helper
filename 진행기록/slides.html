@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>출입도우미 — CI/CD 토이 프로젝트</title>
+  <style>
+    :root {
+      --accent: #5b9bff;
+      --accent-deep: #2d6cdf;
+      --emph: #9cc0ff;
+      --ink: #e7edf7;
+      --muted: #9aa7bd;
+      --bg: #0e1320;
+      --card: #1a2233;
+      --border: #2a3550;
+      --red: #ff7a85;
+      --amber: #ffd166;
+      --green: #8fe3b0;
+      --font: "맑은 고딕", "Malgun Gothic", system-ui, -apple-system, sans-serif;
+      --mono: Consolas, "D2Coding", monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      font-family: var(--font);
+      background: #070a12;
+      color: var(--ink);
+      overflow: hidden;
+    }
+
+    .deck {
+      position: relative;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      padding: 9vh 9.5vw 6vh;
+      background: radial-gradient(120% 120% at 0% 0%, #141d33 0%, var(--bg) 55%);
+    }
+
+    .slide.active {
+      display: flex;
+    }
+
+    .slide::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 8px;
+      background: linear-gradient(90deg, var(--accent-deep), var(--accent), var(--accent-deep));
+      background-size: 200% 100%;
+      animation: sweep 4s linear infinite;
+    }
+
+    .kicker {
+      color: var(--accent);
+      font-size: clamp(13px, 1.5vw, 17px);
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-size: clamp(28px, 5vw, 52px);
+      color: #fff;
+      line-height: 1.18;
+    }
+
+    h2 {
+      font-size: clamp(23px, 3.3vw, 38px);
+      color: var(--accent);
+      margin-bottom: 20px;
+    }
+
+    .sub {
+      font-size: clamp(15px, 1.8vw, 22px);
+      color: var(--muted);
+      margin-top: 14px;
+      line-height: 1.6;
+    }
+
+    ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 13px;
+      margin-top: 6px;
+    }
+
+    li {
+      font-size: clamp(15px, 1.85vw, 22px);
+      line-height: 1.5;
+      padding-left: 32px;
+      position: relative;
+    }
+
+    li::before {
+      content: "▸";
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-weight: bold;
+    }
+
+    ul.bad li::before {
+      content: "✗";
+      color: var(--red);
+    }
+
+    li small {
+      display: block;
+      color: var(--muted);
+      font-size: .78em;
+      margin-top: 3px;
+    }
+
+    b {
+      color: var(--emph);
+    }
+
+    code {
+      font-family: var(--mono);
+      background: #0b1020;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1px 7px;
+      font-size: .9em;
+      color: #cfe0ff;
+    }
+
+    .cover {
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .cover .tag {
+      display: inline-block;
+      background: var(--accent-deep);
+      color: #fff;
+      font-size: 14px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      margin-bottom: 22px;
+      letter-spacing: .5px;
+      animation: tagPulse 2.4s ease-in-out infinite;
+    }
+
+    .cover .subtitle {
+      margin-top: 12px;
+      font-size: clamp(18px, 2.5vw, 30px);
+      font-weight: 600;
+      color: var(--emph);
+    }
+
+    .cover .by {
+      margin-top: 34px;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .cover .pipe {
+      margin-top: 30px;
+      font-size: clamp(20px, 3vw, 34px);
+      letter-spacing: 6px;
+    }
+
+    .cover .pipe span {
+      display: inline-block;
+      animation: bob 2s ease-in-out infinite;
+    }
+
+    .lead {
+      font-size: clamp(24px, 3.6vw, 44px);
+      line-height: 1.45;
+      color: #fff;
+      max-width: 20em;
+    }
+
+    .lead b {
+      color: var(--accent);
+    }
+
+    .lead .x {
+      color: var(--red);
+    }
+
+    .lead .o {
+      color: var(--green);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-top: 10px;
+    }
+
+    .grid.g3 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 20px;
+      transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      border-color: var(--accent);
+      box-shadow: 0 12px 26px rgba(0, 0, 0, .4);
+    }
+
+    .card h3 {
+      color: var(--accent);
+      font-size: clamp(16px, 1.9vw, 22px);
+      margin-bottom: 7px;
+    }
+
+    .card .ic {
+      font-size: 1.25em;
+      margin-right: 6px;
+    }
+
+    .card p {
+      color: var(--muted);
+      font-size: clamp(13px, 1.5vw, 17px);
+      line-height: 1.5;
+    }
+
+    .card p b {
+      color: var(--ink);
+    }
+
+    /* 트러블슈팅 카드 인라인 라벨 */
+    .t-s {
+      color: var(--red);
+      font-weight: 700;
+    }
+
+    .t-c {
+      color: var(--amber);
+      font-weight: 700;
+    }
+
+    .t-f {
+      color: var(--green);
+      font-weight: 700;
+    }
+
+    .flow {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    .flow.center {
+      justify-content: center;
+    }
+
+    .flow.fill {
+      justify-content: space-between;
+    }
+
+    /* 배운 점 2단 배치 */
+    .lessons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px 36px;
+      margin-top: 12px;
+    }
+
+    .lessons .it {
+      font-size: clamp(14px, 1.6vw, 19px);
+      line-height: 1.4;
+    }
+
+    .lessons .it b {
+      color: var(--emph);
+    }
+
+    .lessons .it small {
+      display: block;
+      color: var(--muted);
+      font-size: .76em;
+      margin-top: 3px;
+      line-height: 1.35;
+    }
+
+    /* 마무리(감사합니다) 페이지 */
+    .closing {
+      align-items: center;
+      text-align: center;
+    }
+
+    .closing .by {
+      margin-top: 28px;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .step {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: clamp(13px, 1.55vw, 18px);
+      font-weight: 600;
+      color: var(--ink);
+      text-align: center;
+      transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+    }
+
+    .step:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent);
+      box-shadow: 0 10px 22px rgba(0, 0, 0, .4);
+    }
+
+    .step .ic {
+      display: block;
+      font-size: 1.5em;
+      margin-bottom: 3px;
+    }
+
+    .step b {
+      color: var(--accent);
+    }
+
+    .arrow {
+      color: var(--accent);
+      font-size: clamp(18px, 2.2vw, 26px);
+      font-weight: bold;
+    }
+
+    /* 트러블슈팅 */
+    .tslist {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tsrow {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      margin-top: 14px;
+    }
+
+    .tslabel {
+      flex: 0 0 auto;
+      min-width: 76px;
+      text-align: center;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #0b1020;
+    }
+
+    .tsrow p {
+      font-size: clamp(14px, 1.7vw, 20px);
+      line-height: 1.5;
+    }
+
+    .l-red {
+      background: var(--red);
+    }
+
+    .l-amber {
+      background: var(--amber);
+    }
+
+    .l-green {
+      background: var(--green);
+    }
+
+    .l-blue {
+      background: var(--emph);
+    }
+
+    /* Before/After */
+    .compare {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 18px;
+      margin-top: 8px;
+    }
+
+    .shot {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .frame {
+      position: relative;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      background: #0b1020;
+      min-height: 46vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .4);
+      transition: transform .16s ease;
+    }
+
+    .shot:hover .frame {
+      transform: scale(1.02);
+    }
+
+    .frame img {
+      max-width: 100%;
+      max-height: 60vh;
+      display: block;
+    }
+
+    .ph {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 15px;
+      text-align: center;
+      padding: 24px;
+      border: 2px dashed var(--border);
+      border-radius: 10px;
+      margin: 18px;
+    }
+
+    .shot figcaption {
+      text-align: center;
+      font-size: clamp(15px, 1.8vw, 20px);
+      font-weight: 600;
+    }
+
+    .shot.before figcaption {
+      color: var(--muted);
+    }
+
+    .shot.after figcaption {
+      color: var(--accent);
+    }
+
+    .vs {
+      font-size: clamp(24px, 3vw, 38px);
+      color: var(--accent);
+      font-weight: bold;
+      animation: vsPulse 1.5s ease-in-out infinite;
+    }
+
+    /* 증거 스크린샷 */
+    .evi {
+      margin-top: 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .evi img {
+      max-width: min(94%, 940px);
+      max-height: 36vh;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, .45);
+      transition: transform .16s ease;
+    }
+
+    .evi img:hover {
+      transform: scale(1.03);
+    }
+
+    .evi figcaption {
+      color: var(--muted);
+      font-size: clamp(13px, 1.4vw, 16px);
+      text-align: center;
+    }
+
+    .evi.big img {
+      max-height: 66vh;
+    }
+
+    /* 설명(좌) + 이미지(우) 2단 배치 */
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 34px;
+      align-items: center;
+      margin-top: 6px;
+    }
+
+    .split .evi {
+      margin-top: 0;
+    }
+
+    .split .evi img {
+      max-height: 54vh;
+    }
+
+    .split.top {
+      align-items: start;
+    }
+
+    /* 개요 시작점: 내용 중앙 배치(좌우 여백 균형) + 살짝 키움 */
+    .fixlist.center {
+      width: fit-content;
+      max-width: 100%;
+      margin: 0 auto;
+    }
+
+    .fixlist.center .fixrow {
+      grid-template-columns: max-content auto max-content;
+      font-size: clamp(16px, 2vw, 24px);
+    }
+
+    /* 코드 스니펫 블록 */
+    .code {
+      background: #0b1020;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 18px;
+      font-family: var(--mono);
+      font-size: clamp(11px, 1.2vw, 15px);
+      line-height: 1.55;
+      color: #cfe0ff;
+      white-space: pre;
+      overflow: auto;
+      max-height: 58vh;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, .4);
+    }
+
+    .code .cmt {
+      color: #7f8aa3;
+    }
+
+    /* 이미지 2장 나란히 (크기 맞춤) */
+    .duo {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 16px;
+      align-items: start;
+      justify-items: center;
+    }
+
+    .duo figure {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .duo img {
+      max-width: 100%;
+      max-height: 38vh;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, .4);
+      transition: transform .16s ease;
+    }
+
+    .duo img:hover {
+      transform: scale(1.03);
+    }
+
+    .duo figcaption {
+      font-size: clamp(12px, 1.4vw, 15px);
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .duo.trio {
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+
+    .duo.trio img {
+      width: 100%;
+      height: 30vh;
+      object-fit: contain;
+      background: #0b1020;
+    }
+
+    /* 문제 → 대처 매핑 */
+    .fixlist {
+      display: flex;
+      flex-direction: column;
+      gap: 13px;
+      margin-top: 10px;
+    }
+
+    .fixrow {
+      display: grid;
+      grid-template-columns: max-content auto 1fr;
+      align-items: center;
+      gap: 14px;
+      font-size: clamp(14px, 1.75vw, 21px);
+      line-height: 1.4;
+    }
+
+    .fixrow .prob {
+      color: var(--red);
+      font-weight: 700;
+    }
+
+    .fixrow .prob::before {
+      content: "✗";
+      margin-right: 8px;
+      font-weight: 800;
+    }
+
+    .fixrow .ar {
+      color: var(--accent);
+      font-weight: bold;
+      font-size: 1.3em;
+    }
+
+    .fixrow .sol {
+      color: var(--green);
+      font-weight: 600;
+    }
+
+    .file {
+      display: block;
+      font-size: .64em;
+      font-weight: 400;
+      color: var(--muted);
+      margin-top: 4px;
+      line-height: 1.3;
+    }
+
+    .step .file {
+      font-size: .68em;
+    }
+
+    .card .file {
+      font-size: clamp(11px, 1.2vw, 13px);
+      margin-top: 8px;
+    }
+
+    /* 파일 역할 목록 */
+    .filelist {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .filerow {
+      font-size: clamp(12px, 1.45vw, 16px);
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      height: 5px;
+      background: linear-gradient(90deg, var(--accent-deep), var(--accent));
+      transition: width .35s;
+      z-index: 5;
+      box-shadow: 0 0 12px rgba(91, 155, 255, .6);
+    }
+
+    .pager {
+      position: fixed;
+      bottom: 14px;
+      right: 22px;
+      color: var(--muted);
+      font-size: 14px;
+      z-index: 5;
+      background: rgba(255, 255, 255, .08);
+      padding: 3px 10px;
+      border-radius: 8px;
+    }
+
+    .hint {
+      position: fixed;
+      bottom: 14px;
+      left: 22px;
+      color: var(--muted);
+      font-size: 13px;
+      z-index: 5;
+      background: rgba(255, 255, 255, .08);
+      padding: 3px 10px;
+      border-radius: 8px;
+    }
+
+    /* 상단 목차(챕터) 내비 */
+    .topnav {
+      position: fixed;
+      top: 14px;
+      left: 0;
+      right: 0;
+      z-index: 6;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 0 12px;
+    }
+
+    .topnav.hidden {
+      display: none;
+    }
+
+    .nv {
+      font-size: clamp(11px, 1.15vw, 14px);
+      color: var(--muted);
+      padding: 4px 11px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      background: rgba(255, 255, 255, .04);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all .2s ease;
+    }
+
+    .nv:hover {
+      color: var(--ink);
+      border-color: var(--border);
+    }
+
+    .nv.on {
+      color: #fff;
+      background: var(--accent-deep);
+      border-color: var(--accent);
+      font-weight: 700;
+      box-shadow: 0 2px 12px rgba(91, 155, 255, .45);
+    }
+
+    /* ===== 등장 애니메이션 (슬라이드가 active 될 때 재생) ===== */
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(16px)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    @keyframes slideInLeft {
+      from {
+        opacity: 0;
+        transform: translateX(-20px)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    @keyframes popIn {
+      from {
+        opacity: 0;
+        transform: scale(.86)
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1)
+      }
+    }
+
+    @keyframes arrowFloat {
+
+      0%,
+      100% {
+        transform: translateX(-5px);
+        opacity: .5
+      }
+
+      50% {
+        transform: translateX(6px);
+        opacity: 1
+      }
+    }
+
+    @keyframes vsPulse {
+
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: .7
+      }
+
+      50% {
+        transform: scale(1.18);
+        opacity: 1
+      }
+    }
+
+    @keyframes tagPulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 rgba(91, 155, 255, .55)
+      }
+
+      70%,
+      100% {
+        box-shadow: 0 0 0 12px rgba(91, 155, 255, 0)
+      }
+    }
+
+    @keyframes sweep {
+      to {
+        background-position: 200% 0
+      }
+    }
+
+    @keyframes bob {
+
+      0%,
+      100% {
+        transform: translateY(0)
+      }
+
+      50% {
+        transform: translateY(-7px)
+      }
+    }
+
+    .slide.active .kicker {
+      animation: slideInLeft .45s ease both;
+    }
+
+    .slide.active h1 {
+      animation: rise .55s ease both;
+    }
+
+    .slide.active h2 {
+      animation: rise .5s ease both;
+    }
+
+    .slide.active .lead {
+      animation: rise .6s ease both;
+    }
+
+    .slide.active>.sub {
+      animation: rise .5s ease .15s both;
+    }
+
+    .slide.active li {
+      animation: rise .45s ease both;
+    }
+
+    .slide.active li:nth-child(1) {
+      animation-delay: .10s
+    }
+
+    .slide.active li:nth-child(2) {
+      animation-delay: .20s
+    }
+
+    .slide.active li:nth-child(3) {
+      animation-delay: .30s
+    }
+
+    .slide.active li:nth-child(4) {
+      animation-delay: .40s
+    }
+
+    .slide.active li:nth-child(5) {
+      animation-delay: .50s
+    }
+
+    .slide.active li:nth-child(6) {
+      animation-delay: .60s
+    }
+
+    .slide.active li:nth-child(7) {
+      animation-delay: .70s
+    }
+
+    .slide.active li:nth-child(8) {
+      animation-delay: .80s
+    }
+
+    .slide.active li:nth-child(9) {
+      animation-delay: .90s
+    }
+
+    .slide.active .grid .card {
+      animation: rise .5s ease both;
+    }
+
+    .slide.active .grid .card:nth-child(1) {
+      animation-delay: .12s
+    }
+
+    .slide.active .grid .card:nth-child(2) {
+      animation-delay: .22s
+    }
+
+    .slide.active .grid .card:nth-child(3) {
+      animation-delay: .32s
+    }
+
+    .slide.active .grid .card:nth-child(4) {
+      animation-delay: .42s
+    }
+
+    .slide.active .grid .card:nth-child(5) {
+      animation-delay: .52s
+    }
+
+    .slide.active .grid .card:nth-child(6) {
+      animation-delay: .62s
+    }
+
+    .slide.active .flow .step {
+      animation: popIn .45s ease both;
+    }
+
+    .slide.active .flow .step:nth-child(1) {
+      animation-delay: .10s
+    }
+
+    .slide.active .flow .step:nth-child(3) {
+      animation-delay: .22s
+    }
+
+    .slide.active .flow .step:nth-child(5) {
+      animation-delay: .34s
+    }
+
+    .slide.active .flow .step:nth-child(7) {
+      animation-delay: .46s
+    }
+
+    .slide.active .flow .step:nth-child(9) {
+      animation-delay: .58s
+    }
+
+    .slide.active .flow .step:nth-child(11) {
+      animation-delay: .70s
+    }
+
+    .flow .arrow {
+      animation: arrowFloat 1.6s ease-in-out infinite;
+    }
+
+    .slide.active .tslist .tsrow {
+      animation: slideInLeft .45s ease both;
+    }
+
+    .slide.active .tslist .tsrow:nth-child(1) {
+      animation-delay: .12s
+    }
+
+    .slide.active .tslist .tsrow:nth-child(2) {
+      animation-delay: .26s
+    }
+
+    .slide.active .tslist .tsrow:nth-child(3) {
+      animation-delay: .40s
+    }
+
+    .slide.active .tslist .tsrow:nth-child(4) {
+      animation-delay: .54s
+    }
+
+    .slide.active .compare .before {
+      animation: rise .55s ease .10s both;
+    }
+
+    .slide.active .compare .after {
+      animation: rise .55s ease .28s both;
+    }
+
+    .slide.active .evi {
+      animation: rise .55s ease .18s both;
+    }
+
+    .slide.active .cover .subtitle {
+      animation: rise .5s ease .1s both;
+    }
+
+    .slide.active .filelist {
+      animation: rise .5s ease .3s both;
+    }
+
+    .slide.active .duo {
+      animation: rise .5s ease .2s both;
+    }
+
+    .slide.active .code {
+      animation: rise .55s ease .2s both;
+    }
+
+    .slide.active .lessons .it {
+      animation: rise .45s ease both;
+    }
+
+    .slide.active .lessons .it:nth-child(1) { animation-delay: .08s }
+    .slide.active .lessons .it:nth-child(2) { animation-delay: .16s }
+    .slide.active .lessons .it:nth-child(3) { animation-delay: .24s }
+    .slide.active .lessons .it:nth-child(4) { animation-delay: .32s }
+    .slide.active .lessons .it:nth-child(5) { animation-delay: .40s }
+    .slide.active .lessons .it:nth-child(6) { animation-delay: .48s }
+    .slide.active .lessons .it:nth-child(7) { animation-delay: .56s }
+
+    .slide.active .fixlist .fixrow {
+      animation: slideInLeft .45s ease both;
+    }
+
+    .slide.active .fixlist .fixrow:nth-child(1) {
+      animation-delay: .10s
+    }
+
+    .slide.active .fixlist .fixrow:nth-child(2) {
+      animation-delay: .22s
+    }
+
+    .slide.active .fixlist .fixrow:nth-child(3) {
+      animation-delay: .34s
+    }
+
+    .slide.active .fixlist .fixrow:nth-child(4) {
+      animation-delay: .46s
+    }
+
+    .slide.active .fixlist .fixrow:nth-child(5) {
+      animation-delay: .58s
+    }
+
+    .slide.active .fixlist .fixrow:nth-child(6) {
+      animation-delay: .70s
+    }
+  </style>
+</head>
+
+<body>
+  <div class="deck" id="deck">
+
+    <!-- 1. 표지 -->
+    <section class="slide cover active" data-ch="cover">
+      <span class="tag">🛠️ Java · Gradle · GitHub Actions</span>
+      <h1>CI/CD 토이 프로젝트</h1>
+      <p class="subtitle">노인복지관 출입도우미 V2</p>
+      <p class="sub">과거 Toy Project였던 Java Swing 데스크톱 앱을 리팩토링하고,<br>CI/CD 인프라를 구축해 <b>빌드·테스트·배포를 자동화</b>하기</p>
+      <p class="pipe">🌿 <span style="animation-delay:.2s">→</span> 🐘 <span style="animation-delay:.4s">→</span> 🧪
+        <span style="animation-delay:.6s">→</span> 🤖 <span style="animation-delay:.8s">→</span> 📦 <span
+          style="animation-delay:1s">→</span> 🌐</p>
+      <p class="by">이찬호 · 2026.05.18 ~ 2026.05.26</p>
+    </section>
+
+    <!-- 2. 목차 (인덱스 — 상단 내비 숨김) -->
+    <section class="slide" data-ch="toc">
+      <div class="kicker">🗂️ 목차</div>
+      <h2>발표 순서</h2>
+      <ul>
+        <li><b>① 개요</b> — 프로젝트 배경과 목표 아키텍처</li>
+        <li><b>② 리팩토링</b> — 구식 코드 조치 · 숙원 기능 이식</li>
+        <li><b>③ Gradle</b> — 빌드 표준화: 자동화의 토대</li>
+        <li><b>④ 테스트</b> — 테스트 가능한 구조 + JUnit</li>
+        <li><b>⑤ CI</b> — Github Actions: 푸시마다 자동 빌드·검증</li>
+        <li><b>⑥ CD</b> — 태그 기반 자동 배포</li>
+        <li><b>⑦ 배포</b> — 다운로드 페이지 &amp; 자동 릴리스</li>
+        <li><b>⑧ 트러블슈팅</b> — CI/CD·코드 리팩토링에서 만난 오류들</li>
+        <li><b>⑨ 정리</b> — Before/After · 배운 점</li>
+      </ul>
+    </section>
+
+    <!-- 3. AS-IS -->
+    <section class="slide" data-ch="intro">
+      <div class="kicker">🧨 ① 개요 · 시작점(AS-IS)</div>
+      <h2>문제 → 해결 방안</h2>
+      <div class="fixlist">
+        <div class="fixrow"><span class="prob">빈약한 기능(단순 복사만 가능)</span><span class="ar">➜</span><span class="sol">리팩토링 · UI 개선 · 기능 확장<small class="file">📄 MainFrame.java · UiFactory.java</small></span></div>
+        <div class="fixrow"><span class="prob">숙원이던 좌클릭 자동 붙여넣기</span><span class="ar">➜</span><span class="sol">Robot 지연 붙여넣기로 구현<small class="file">📄 AutoPasteService.java</small></span></div>
+        <div class="fixrow"><span class="prob">Eclipse 설정에 종속</span><span class="ar">➜</span><span class="sol">Gradle 표준 빌드로 전환<small class="file">📄 build.gradle</small></span></div>
+        <div class="fixrow"><span class="prob">build.ps1 수동 빌드 (Windows 전용)</span><span class="ar">➜</span><span class="sol">Actions로 자동 빌드<small class="file">📄 .github/workflows/ci.yml</small></span></div>
+        <div class="fixrow"><span class="prob">의존성 jar 직접 커밋</span><span class="ar">➜</span><span class="sol">Maven Central로 관리<small class="file">📄 build.gradle</small></span></div>
+        <div class="fixrow"><span class="prob">JDK 경로 하드코딩</span><span class="ar">➜</span><span class="sol">toolchain 자동 탐색<small class="file">📄 build.gradle</small></span></div>
+      </div>
+      <p class="sub" style="margin-top:18px">⛔ AS-IS: 러너가 빌드조차 못 하는 상태 → <b> TO-BE: 코드 리팩토링</b> 부터 다시 작업</p>
+    </section>
+
+    <!-- 4. 목표 아키텍처 -->
+    <section class="slide" data-ch="intro">
+      <div class="kicker">🏗️ ① 개요 · 전체 아키텍처</div>
+      <h2>전체 파이프라인 한눈에</h2>
+      <div class="flow fill">
+        <span class="step"><span class="ic">🌿</span><b>Git</b><br>코드 버전 관리<small class="file">GitHub 저장소</small></span><span class="arrow">→</span>
+        <span class="step"><span class="ic">🐘</span><b>Gradle</b><br>표준 빌드·의존성<small class="file">build.gradle</small></span><span class="arrow">→</span>
+        <span class="step"><span class="ic">🧪</span><b>JUnit</b><br>순수 로직 테스트<small class="file">*Test.java</small></span><span class="arrow">→</span>
+        <span class="step"><span class="ic">🤖</span><b>Actions</b><br>push마다 자동 검증<small class="file">ci.yml</small></span><span class="arrow">→</span>
+        <span class="step"><span class="ic">📦</span><b>jpackage</b><br>exe 패키징·릴리스<small class="file">release.yml</small></span><span class="arrow">→</span>
+        <span class="step"><span class="ic">🌐</span><b>Pages</b><br>다운로드 페이지<small class="file">docs/index.html</small></span>
+      </div>
+      <p class="sub">💡전용 서버 구축 X — 저장소에 통합된 무료 인프라로 <b>비용·관리 없이</b> push·tag만 사용해 자동화</p>
+    </section>
+
+    <!-- R1. 리팩토링: AS-IS 코드 -->
+    <section class="slide" data-ch="refactor">
+      <div class="kicker">🧹 ② 리팩토링 · 원본 코드의 상태</div>
+      <h2>한 파일에 다 들어있던 코드</h2>
+      <div class="split">
+        <div>
+          <ul class="bad">
+            <li><b>God Method</b> — <code>main()</code> 하나에 약 230줄<small>UI·이벤트·외부 실행이 전부 한 메서드에</small></li>
+            <li><b>DRY 위반</b> — 버튼 13개의 복사 로직을 <b>복붙 13번</b><small>람다 캡처 제약으로 for문을 못 씀</small></li>
+            <li><b>블로킹 버그</b> — <code>p.waitFor()</code> 때문에 외부 exe가 닫힐 때까지 창이 안 뜸</li>
+            <li><b>하드코딩</b> — 외부 exe 경로·좌표 매직넘버가 코드에 박힘</li>
+            <li><b>잔재</b> — 빈 <code>Button.java</code> · 컴파일 안 되는 <code>Removed.java</code> · 죽은 주석</li>
+          </ul>
+          <div class="filelist">
+            <div class="filerow">📄 <code>Main.java</code> — 모든 책임이 한 파일에 (약 230줄)</div>
+          </div>
+        </div>
+        <pre class="code"><span class="cmt">// 버튼 13개 복사 로직을 복붙 13번</span>
+btn[0].addActionListener(e -> {
+  StringSelection d = new StringSelection(prgname[0]);
+  clipboard.setContents(d, d);
+});
+btn[1].addActionListener(e -> { <span class="cmt">/* prgname[1] … 동일 */</span> });
+<span class="cmt">// ... 11번 더 ...</span>
+
+<span class="cmt">// 외부 exe 경로 하드코딩 + 블로킹</span>
+p = rt.exec("C:\\…\\ATTEND_RF.exe");
+p.waitFor();</pre>
+      </div>
+    </section>
+
+    <!-- R2. 리팩토링: To-Be 구조 -->
+    <section class="slide" data-ch="refactor">
+      <div class="kicker">🧩 ② 리팩토링 · 책임 분리 (To-Be)</div>
+      <h2>God 클래스 → 역할별로 분리</h2>
+      <div class="split">
+        <div class="fixlist">
+          <div class="fixrow"><span class="prob">복붙 13개 리스너</span><span class="ar">➜</span><span class="sol">for 루프 1개 (final 캡처)<small class="file">📄 MainFrame.java</small></span></div>
+          <div class="fixrow"><span class="prob">외부 exe 강제 실행</span><span class="ar">➜</span><span class="sol">제거 — 경로 의존·블로킹 해소<small class="file">📄 Main.java에서 삭제</small></span></div>
+          <div class="fixrow"><span class="prob">버튼 목록 하드코딩</span><span class="ar">➜</span><span class="sol">config.properties로 외부화<small class="file">📄 AppConfig.java</small></span></div>
+          <div class="fixrow"><span class="prob">EDT 규약 위반</span><span class="ar">➜</span><span class="sol">invokeLater로 EDT에서 UI 생성<small class="file">📄 App.java</small></span></div>
+        </div>
+        <pre class="code"><span class="cmt">[Before]</span>
+src/main/
+└ Main.java   <span class="cmt">← 230줄, 모든 책임</span>
+
+<span class="cmt">[After]</span>
+src/main/java/app/
+├ App.java          <span class="cmt">진입점</span>
+├ MainFrame.java    <span class="cmt">UI 구성</span>
+├ UiConstants.java  <span class="cmt">상수</span>
+├ ClipboardService  <span class="cmt">복사</span>
+└ AppConfig.java    <span class="cmt">설정</span></pre>
+      </div>
+    </section>
+
+    <!-- R3. 리팩토링: 숙원 기능 -->
+    <section class="slide" data-ch="refactor">
+      <div class="kicker">✨ ② 리팩토링 · 숙원 기능</div>
+      <h2>좌클릭 한 번으로 자동 붙여넣기</h2>
+      <div class="split top">
+        <div>
+          <div class="flow">
+            <span class="step"><span class="ic">🖱️</span>버튼 클릭<br>클립보드 복사</span><span class="arrow">→</span>
+            <span class="step"><span class="ic">⏳</span>잠깐 대기<br>입력칸 클릭 유도</span><span class="arrow">→</span>
+            <span class="step"><span class="ic">⌨️</span>Robot이<br>Ctrl+V 발사</span>
+          </div>
+          <ul style="margin-top:16px">
+            <li>🛡️ 강제 전역 후킹은 백신이 <b>키로거로 오인</b> → <b>지연 + Robot</b>으로 우회</li>
+            <li>🔌 전역 클릭 감지 <b>JNativeHook</b> · 키 입력 <b>java.awt.Robot</b></li>
+            <li>♻️ 후킹 실패 시 <b>자동 비활성화</b> → 수동 Ctrl+V 폴백</li>
+          </ul>
+          <div class="filelist">
+            <div class="filerow">📄 <code>AutoPasteService.java</code> — 전역 후킹 + 지연 붙여넣기</div>
+            <div class="filerow">📄 <code>App.java</code> — 서비스 연결</div>
+          </div>
+        </div>
+        <pre class="code"><span class="cmt">// 버튼 클릭 → 복사 후 '무장'</span>
+<span class="cmt">// 사용자가 입력칸을 클릭하면 실행</span>
+void schedulePaste() {
+  Thread.sleep(200);            <span class="cmt">// 잠깐 대기</span>
+  robot.keyPress(VK_CONTROL);
+  robot.keyPress(VK_V);         <span class="cmt">// OS 레벨 Ctrl+V</span>
+  robot.keyRelease(VK_V);
+  robot.keyRelease(VK_CONTROL);
+}</pre>
+      </div>
+    </section>
+
+    <!-- 5. Gradle -->
+    <section class="slide" data-ch="gradle">
+      <div class="kicker">⚙️ ③ 빌드 표준화</div>
+      <h2>Gradle 마이그레이션</h2>
+      <div class="split">
+        <div class="grid" style="grid-template-columns:1fr;gap:12px">
+          <div class="card">
+            <h3><span class="ic">🧭</span>toolchain</h3>
+            <p>JDK <b>경로 하드코딩 제거</b> — 버전(25)만 선언, 자동 탐색</p>
+          </div>
+          <div class="card">
+            <h3><span class="ic">📌</span>Wrapper 9.5.1</h3>
+            <p>빌드 도구 <b>버전까지 고정</b> — 어디서나 동일 재현</p>
+          </div>
+          <div class="card">
+            <h3><span class="ic">📚</span>Maven Central</h3>
+            <p><code>lib/*.jar</code> 직접 커밋 → <b>좌표로 선언</b></p>
+          </div>
+        </div>
+        <pre class="code">plugins { id 'application' }
+
+java {
+  toolchain {                       <span class="cmt">// 경로 하드코딩 X</span>
+    languageVersion = of(25)        <span class="cmt">// 버전만 선언</span>
+  }
+}
+repositories { mavenCentral() }     <span class="cmt">// lib/*.jar 대체</span>
+dependencies {
+  implementation 'com…:jnativehook:2.2.2'
+}</pre>
+      </div>
+      <p class="sub">✅ OS 무관하게 <code>./gradlew build</code> 한 줄 — <b>러너가 빌드할 수 있는 조건</b></p>
+    </section>
+
+    <!-- 6. 테스트 -->
+    <section class="slide" data-ch="test">
+      <div class="kicker">🧪 ④ 검증의 토대</div>
+      <h2>테스트 가능한 구조로</h2>
+      <div class="split">
+        <div>
+          <ul>
+            <li>🖥️ CI 러너는 <b>GUI가 없는 '헤드리스' 환경</b></li>
+            <li>🚫 이 앱은 GUI·마우스 후킹·클립보드라 <b>CI에서 그대로는 테스트하기 어려움</b><small>화면이 없으면 HeadlessException 발생</small></li>
+            <li>✂️ 그래서 <b>화면과 무관한 순수 로직만 별도 함수로 추출</b>해 JUnit으로 테스트<small>예: 설정 파싱 <code>parsePrograms()</code></small></li>
+          </ul>
+          <p class="sub">🎯 핵심: 테스트 수가 아니라 <b>'테스트 가능하게 분리한 설계'</b></p>
+          <div class="filelist">
+            <div class="filerow">📄 <code>build.gradle</code> — JUnit 5 도입 · 테스트 실행 환경</div>
+            <div class="filerow">📄 <code>AppConfig</code> · <code>UsageLog</code> · <code>UpdateChecker</code> — 테스트할 <b>순수 로직</b> (운영 코드)</div>
+            <div class="filerow">📄 <code>AppConfigTest</code> · <code>UsageLogTest</code> · <code>UpdateCheckerTest</code> — 실제 <b>단위 테스트</b></div>
+          </div>
+        </div>
+        <pre class="code"><span class="cmt">// 화면과 무관한 '순수 함수'로 추출</span>
+static List&lt;String&gt; parsePrograms(String csv) {
+  return Arrays.asList(csv.split("\\s*,\\s*"));
+}
+
+<span class="cmt">// 파일·화면 없이 그냥 검증</span>
+@Test
+void splitsByComma() {
+  assertEquals(List.of("a", "b"),
+    AppConfig.parsePrograms("a, b"));
+}</pre>
+      </div>
+    </section>
+
+    <!-- 7. CI -->
+    <section class="slide" data-ch="ci">
+      <div class="kicker">🔁 ⑤ 지속적 통합 (CI)</div>
+      <h2>GitHub Actions — 올릴 때마다 자동 검증</h2>
+      <div class="split">
+        <div>
+          <ul>
+            <li>⬆️ <b>push·PR마다</b> 자동 실행 — 사람이 기억해 돌릴 필요 없음</li>
+            <li>🐧 ubuntu 러너가 <code>gradlew build</code>로 <b>컴파일 + 테스트</b> 수행</li>
+            <li>✅ 통과/실패가 <b>PR 체크 · README 배지</b>에 바로 표시</li>
+            <li>🟢 덕분에 기본 브랜치는 <b>항상 통과 상태</b> 보장</li>
+          </ul>
+          <div class="filelist">
+            <div class="filerow">📄 <code>.github/workflows/ci.yml</code> — push·PR마다 ubuntu 러너에서 <code>gradlew build</code> 자동 실행</div>
+          </div>
+        </div>
+        <figure class="evi">
+          <img src="images/ci-checks.png" alt="PR 모든 검사 통과"
+            onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+          <div class="ph" style="display:none">images/ci-checks.png</div>
+          <figcaption>🟢 PR — 모든 검사 통과</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- 8. CD -->
+    <section class="slide" data-ch="cd">
+      <div class="kicker">🚀 ⑥ 지속적 배포 (CD)</div>
+      <h2>언제 · 무엇을 배포할지부터 결정</h2>
+      <p class="sub" style="margin-top:0">📦 CD = 사용자가 받을 결과물(exe)을 자동으로 만들어 배포 — 워크플로를 짜기 전에 <b>두 가지</b>를 먼저 정했다</p>
+      <div class="grid">
+        <div class="card">
+          <h3><span class="ic">⏱️</span>언제? (트리거)</h3>
+          <p>매 push · 수동 · 태그 중 → <b>버전 태그 push (<code>v*</code>)</b><br>릴리스 ↔ 버전이 1:1, 업계 표준</p>
+          <small class="file">📄 release.yml — 태그 push를 트리거로 설정</small>
+        </div>
+        <div class="card">
+          <h3><span class="ic">📦</span>무엇? (산출물)</h3>
+          <p>단독 exe · zip · 설치본 중 → <b>JRE 내장 app-image zip</b><br>자바 없는 PC도 풀고 더블클릭</p>
+          <small class="file">📄 release.yml — jpackageImage로 zip 빌드·업로드</small>
+        </div>
+      </div>
+      <div class="duo trio">
+        <figure>
+          <img src="images/tag.png" alt="버전 태그 목록"
+            onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+          <div class="ph" style="display:none">images/tag.png</div>
+          <figcaption>🏷️ 태그 push (트리거)</figcaption>
+        </figure>
+        <figure>
+          <img src="images/release-runs.png" alt="Release 워크플로 실행"
+            onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+          <div class="ph" style="display:none">images/release-runs.png</div>
+          <figcaption>🤖 워크플로 자동 실행</figcaption>
+        </figure>
+        <figure>
+          <img src="images/release-notes.png" alt="v1.3.0 릴리스 노트"
+            onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+          <div class="ph" style="display:none">images/release-notes.png</div>
+          <figcaption>📤 릴리스 자동 등록</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- 10. Pages + 사이클 -->
+    <section class="slide" data-ch="deploy">
+      <div class="kicker">📦 ⑦ 다운로드 페이지 + 전체 사이클</div>
+      <h2>태그 하나로 끝나는 무인 배포</h2>
+      <div class="split">
+        <div>
+          <ul>
+            <li>🏷️ 버전 <b>태그 push</b> → Actions가 windows에서 <b>exe 빌드</b></li>
+            <li>📤 zip을 <b>Releases에 자동 등록</b></li>
+            <li>🌐 Pages 다운로드 페이지가 <b>고정 URL</b>(/latest/download)로 항상 최신</li>
+            <li>✅ 태그 하나로 <b>빌드 → 배포 → 다운로드까지 무인 자동화</b></li>
+          </ul>
+          <div class="filelist">
+            <div class="filerow">📄 <code>docs/index.html</code> — 다운로드 랜딩 페이지 (GitHub Pages 호스팅)</div>
+            <div class="filerow">📄 <code>release.yml</code> — 버전 없는 고정 이름 zip으로 /latest 링크 유지</div>
+            <div class="filerow">🌐 <a href="https://chanyoze.github.io/Seongbuk-Senior-Club-Entrance-Helper/" style="color:var(--accent);text-decoration:underline">chanyoze.github.io/Seongbuk-Senior-Club-Entrance-Helper</a></div>
+          </div>
+        </div>
+        <figure class="evi">
+          <img src="images/pages.png" alt="GitHub Pages 다운로드 사이트"
+            onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+          <div class="ph" style="display:none">images/pages.png</div>
+          <figcaption>🔗 고정 URL — 새 버전 나와도 페이지 수정 불필요</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- 11a. 트러블슈팅 · CI/CD 3종 -->
+    <section class="slide" data-ch="trouble">
+      <div class="kicker">🐞 ⑧ 트러블슈팅 · CI/CD</div>
+      <h2>빌드·배포에서 막혔던 3가지</h2>
+      <div class="grid g3">
+        <div class="card">
+          <h3><span class="ic">📦</span>릴리스에 빈 zip이 올라감</h3>
+          <p><span class="t-s">증상</span> 워크플로는 성공인데 <b>릴리스된 zip이 460byte</b><br>
+            <span class="t-c">원인</span> 압축 단계가 파일명 재조립 중 인코딩 깨짐 <br>→ 에러 없이 빈 zip 생성<br>
+            <span class="t-f">해결</span> 폴더 직접 탐지 · <code>tar</code> · 크기 가드 · ASCII 이름</p>
+        </div>
+        <div class="card">
+          <h3><span class="ic">🏷️</span>대문자 태그 미트리거</h3>
+          <p><span class="t-s">증상</span> <code>V1.2.0</code> push했는데 릴리스 안 돎<br>
+            <span class="t-c">원인</span> 트리거 <code>v*</code>가 대소문자 구분<br>
+            <span class="t-f">해결</span> <code>['v*','V*']</code>로 확장 + 태그 force 재발행</p>
+        </div>
+        <div class="card">
+          <h3><span class="ic">🐧</span>Permission denied</h3>
+          <p><span class="t-s">증상</span> ubuntu 러너에서 <code>./gradlew</code> 실행 거부<br>
+            <span class="t-c">원인</span> git에 실행권한(+x) 비트 없음<br>
+            <span class="t-f">해결</span> <code>git update-index --chmod=+x gradlew</code></p>
+        </div>
+      </div>
+      <p class="sub">💡 교훈: <b>'성공 로그 ≠ 정상 결과'</b> — 에러 없이 조용히 실패할 수 있으니 <b>산출물 검증 가드</b>를 두자 (CI/CD는 셸·인코딩·OS·대소문자에 민감)</p>
+    </section>
+
+    <!-- 11b. 트러블슈팅 · 앱 디버깅 2종 -->
+    <section class="slide" data-ch="trouble">
+      <div class="kicker">🧩 ⑧ 트러블슈팅 · 앱 디버깅</div>
+      <h2>환경 의존 버그 2종</h2>
+      <div class="grid">
+        <div class="card">
+          <h3><span class="ic">⌨️</span>미리보기 클릭 후 단축키 먹통</h3>
+          <p><span class="t-s">증상</span> 숫자키 단축키가 처음엔 되다가, 미리보기를 한 번 클릭하면 안 먹힘<br>
+            <span class="t-c">원인</span> 입력 중엔 숫자키를 양보하게 했는데 그 대상에 <b>미리보기 영역까지</b> 포함 <br>→ 미리보기에 포커스가 가면 단축키가 막힘<br>
+            <span class="t-f">해결</span> 양보 대상을 <b>'사용자 지정 입력칸'으로만</b> 한정</p>
+          <small class="file">📄 MainFrame.java (setupHotkeys) — 숫자키 단축키 처리</small>
+        </div>
+        <div class="card">
+          <h3><span class="ic">🔤</span>아이콘 깨짐</h3>
+          <p><span class="t-s">증상</span> 편집 버튼의 <code>✎</code>가 네모로 표시<br>
+            <span class="t-c">원인</span> 맑은 고딕에 글리프 없음<br>
+            <span class="t-f">해결</span> <code>canDisplay</code>로 표시 가능한 글자만 부착(일반화)</p>
+          <small class="file">📄 UiConstants.java (icon) — 표시 가능한 글리프만 부착</small>
+        </div>
+      </div>
+      <p class="sub">💡 교훈: 환경(포커스·폰트) 의존 버그는 <b>재현 조건을 좁혀</b> 잡고, <b>일반화된 가드</b>로 재발 차단</p>
+    </section>
+
+    <!-- 12. Before / After -->
+    <section class="slide" data-ch="wrap">
+      <div class="kicker">🖼️ ⑨ 정리 · Before → After (앱 화면)</div>
+      <h2>Before → After (실제 화면)</h2>
+      <div class="compare">
+        <figure class="shot before">
+          <div class="frame">
+            <img src="images/before.png" alt="최초 버전"
+              onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+            <div class="ph" style="display:none">최초 exe 캡처<br><code>images/before.png</code></div>
+          </div>
+          <figcaption>🕰️ 최초 버전 (리팩토링 전)</figcaption>
+        </figure>
+        <div class="vs">→</div>
+        <figure class="shot after">
+          <div class="frame">
+            <img src="images/after.png" alt="현재 버전(v1.3)"
+              onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+            <div class="ph" style="display:none">현재 exe 캡처<br><code>images/after.png</code></div>
+          </div>
+          <figcaption>✨ 현재 (v1.3)</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- 13. 마무리 -->
+    <section class="slide" data-ch="wrap">
+      <div class="kicker">📌 ⑨ 정리 · 배운 점</div>
+      <h2>이번 프로젝트에서 배운 것</h2>
+      <div class="lessons">
+        <div class="it">⚡ <b>자동화·재현성</b><small>toolchain·Wrapper로 어디서나 동일 빌드 · push/tag로 무인화</small></div>
+        <div class="it">🧪 <b>테스트는 '설계' 문제</b><small>GUI·OS 의존부와 순수 로직 분리가 CI 검증의 토대</small></div>
+        <div class="it">🛡️ <b>회귀·실수 방지 3중망</b><small>단위 테스트 + CI 자동 검증 + 산출물 크기 가드</small></div>
+        <div class="it">🧩 <b>작은 단위 + 문서화</b><small>기능별 PR·진행기록으로 추적·롤백이 쉬움</small></div>
+        <div class="it">🎯 <b>결정이 구현보다 먼저</b><small>CD 트리거·산출물 형태를 먼저 정해 구현 단순화</small></div>
+        <div class="it">💸 <b>토이엔 무료 인프라로 충분</b><small>전용 서버 없이 Actions·Pages로 비용·관리 0</small></div>
+        <div class="it">🔤 <b>환경 차이에 민감</b><small>셸·인코딩·OS·대소문자 — ASCII·직접 참조가 안전</small></div>
+      </div>
+    </section>
+
+    <!-- 14. 마무리 (감사합니다) -->
+    <section class="slide closing" data-ch="end">
+      <h1>감사합니다 🙇</h1>
+      <p class="sub">🐳 다음 단계 — Docker + GitHub Actions로 빌드 환경까지 컨테이너화</p>
+      <p class="by">CI/CD 토이 프로젝트 · 이찬호 · 2026.05</p>
+    </section>
+
+  </div>
+
+  <nav class="topnav" id="topnav">
+    <span class="nv" data-ch="intro">① 개요</span>
+    <span class="nv" data-ch="refactor">② 리팩토링</span>
+    <span class="nv" data-ch="gradle">③ Gradle</span>
+    <span class="nv" data-ch="test">④ 테스트</span>
+    <span class="nv" data-ch="ci">⑤ CI</span>
+    <span class="nv" data-ch="cd">⑥ CD</span>
+    <span class="nv" data-ch="deploy">⑦ 배포</span>
+    <span class="nv" data-ch="trouble">⑧ 트러블슈팅</span>
+    <span class="nv" data-ch="wrap">⑨ 정리</span>
+  </nav>
+
+  <div class="bar" id="bar"></div>
+  <div class="pager" id="pager"></div>
+  <div class="hint">← → 또는 클릭으로 이동 · F 전체화면 · Ctrl+P PDF</div>
+
+  <script>
+    const slides = [...document.querySelectorAll('.slide')];
+    const nav = document.getElementById('topnav');
+    const navItems = [...document.querySelectorAll('.nv')];
+    let i = 0;
+    function show(n) {
+      i = Math.max(0, Math.min(slides.length - 1, n));
+      slides.forEach((s, k) => s.classList.toggle('active', k === i));
+      const ch = slides[i].dataset.ch;
+      nav.classList.toggle('hidden', ch === 'cover' || ch === 'toc' || ch === 'end');
+      navItems.forEach(it => it.classList.toggle('on', it.dataset.ch === ch));
+      document.getElementById('bar').style.width = ((i + 1) / slides.length * 100) + '%';
+      document.getElementById('pager').textContent = (i + 1) + ' / ' + slides.length;
+    }
+    navItems.forEach(it => it.addEventListener('click', e => {
+      e.stopPropagation();
+      const t = slides.findIndex(s => s.dataset.ch === it.dataset.ch);
+      if (t >= 0) show(t);
+    }));
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') show(i + 1);
+      else if (e.key === 'ArrowLeft' || e.key === 'PageUp') show(i - 1);
+      else if (e.key === 'Home') show(0);
+      else if (e.key === 'End') show(slides.length - 1);
+      else if (e.key === 'f' || e.key === 'F') { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
+    });
+    document.getElementById('deck').addEventListener('click', e => {
+      show(e.clientX < window.innerWidth * 0.25 ? i - 1 : i + 1);
+    });
+    show(0);
+  </script>
+</body>
+
+</html>
