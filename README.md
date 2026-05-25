@@ -4,6 +4,7 @@
 
 > **⬇️ 다운로드:** [다운로드 페이지](https://chanyoze.github.io/Seongbuk-Senior-Club-Entrance-Helper/)
 > · [최신 zip 직접 받기](https://github.com/chanyoze/Seongbuk-Senior-Club-Entrance-Helper/releases/latest/download/EntranceHelper.zip)
+> 
 > Windows · 자바 설치 불필요 · 압축 풀고 `EntranceHelper.exe` 실행
 
 복지관 출입도우미 헬퍼
